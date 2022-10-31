@@ -94,6 +94,8 @@ port(
  video_blankn   : out std_logic;
  video_hs       : out std_logic;
  video_vs       : out std_logic;
+ video_hblank   : out std_logic;
+ video_vblank   : out std_logic;
  audio_out      : out std_logic_vector(10 downto 0);
 
  cpu_rom_addr   : out std_logic_vector(14 downto 0);
@@ -718,6 +720,9 @@ if rising_edge(clock_36) and pix_ena = '1' then
 --
 end if;
 end process;
+
+video_hblank <= hblank;
+video_vblank <= vblank;
 
 ------------------------------
 -- components & sound board --
