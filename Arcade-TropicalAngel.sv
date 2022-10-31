@@ -186,9 +186,6 @@ assign VGA_SCALER  = 0;
 assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
 
-assign AUDIO_S = 0;
-assign AUDIO_L = 0;
-assign AUDIO_R = 0;
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;
@@ -207,8 +204,7 @@ localparam CONF_STR = {
 	"A.TropicalAngel;;",
 	"-;",
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"H0O[3],Orientation,Vert,Horz;",
-	"O[6:4],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"-;",
 	"DIP;",
 	"-;",
@@ -275,7 +271,9 @@ pll pll
 	.locked(pll_locked)
 );
 
-wire reset = RESET | status[0] | buttons[1];
+// wire reset = RESET | status[0] | buttons[1];
+reg reset;
+always @(posedge clk_sys) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
 
 //////////////////////////////////////////////////////////////////
 
@@ -296,5 +294,40 @@ wire m_brake_2 = joystick_1[5];
 wire m_start1 = joystick_0[6];
 wire m_start2 = joystick_1[6];
 wire m_coin   = joy[7];
+
+wire hblank, vblank;
+wire hs, vs;
+wire [1:0] rs;
+wire [2:0] g;
+wire [2:0] b;
+wire [2:0] r={rs,1'b0};
+
+reg ce_pix;
+always @(posedge clk_48) begin
+	reg [2:0] div;
+
+	div <= div + 1'd1;
+	ce_pix <= !div;
+end
+
+arcade_video #(384,9) arcade_video
+(
+	.*,
+
+	.clk_video(clk_48),
+
+	.RGB_in({r,g,b}),
+	.HBlank(hblank),
+	.VBlank(vblank),
+	.HSync(hs),
+	.VSync(vs),
+
+	.fx(status[5:3])
+);
+
+wire [10:0] audio;
+assign AUDIO_L = {audio, 5'd0};
+assign AUDIO_R = {audio, 5'd0};
+assign AUDIO_S = 0;
 
 endmodule
