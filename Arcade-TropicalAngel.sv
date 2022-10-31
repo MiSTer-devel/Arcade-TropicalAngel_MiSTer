@@ -205,6 +205,7 @@ localparam CONF_STR = {
 	"-;",
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+	"O[6],Video Timing,Original,Pal 50Hz;",
 	"-;",
 	"DIP;",
 	"-;",
@@ -216,20 +217,29 @@ localparam CONF_STR = {
 
 wire [127:0] status;
 wire   [1:0] buttons;
+wire         palmode = status[6];
+wire         forced_scandoubler;
+wire         direct_video;
 
-wire forced_scandoubler;
-wire direct_video;
+wire  [14:0] rom_addr;
+wire  [15:0] rom_do;
+wire  [12:0] snd_rom_addr;
+wire  [16:1] snd_addr;
+wire  [15:0] snd_do;
+wire         snd_vma, snd_vma_r, snd_vma_r2;
+wire  [14:0] sp_addr;
+wire  [31:0] sp_do;
 
-wire        ioctl_download;
-wire        ioctl_wr;
-wire [24:0] ioctl_addr;
-wire  [7:0] ioctl_dout;
-wire  [7:0] ioctl_index;
+wire         ioctl_download;
+wire         ioctl_wr;
+wire  [24:0] ioctl_addr;
+wire   [7:0] ioctl_dout;
+wire   [7:0] ioctl_index;
 
-wire [15:0] joystick_0,joystick_1;
-wire [15:0] joy = joystick_0 | joystick_1;
+wire  [15:0] joystick_0,joystick_1;
+wire  [15:0] joy = joystick_0 | joystick_1;
 
-wire [21:0] gamma_bus;
+wire  [21:0] gamma_bus;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
@@ -258,7 +268,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sd, clk_sys, clk_aud, clk_dac;
+wire clk_sd, clk_sys, clk_aud;
 wire pll_locked;
 pll pll
 (
@@ -267,7 +277,6 @@ pll pll
 	.outclk_0(clk_sd),  // 73.727997 MHz
 	.outclk_1(clk_sys), // 36.863998 MHz
 	.outclk_2(clk_aud), // 0.895 MHz
-	.outclk_3(clk_dac), // 89.5 MHz
 	.locked(pll_locked)
 );
 
@@ -277,30 +286,117 @@ always @(posedge clk_sys) reset <=(RESET | status[0] | buttons[1] | ioctl_downlo
 
 //////////////////////////////////////////////////////////////////
 
+/* ROM structure
+00000 - 07FFF main CPU    32k  ta-a-3k ta-a-3m ta-a-3n ta-a-3q
+08000 - 09FFF  snd CPU     8k  ta-s-1a
+0A000 - 0FFFF gfx1        24k  ta-a-3e ta-a-3d ta-a-3c
+10000 - 1BFFF gfx2        48k  ta-b-5j ta-b-5h ta-b-5e ta-b-5d ta-b-5c ta-b-5a
+1C000 - 1C0FF chr pal lo 256b  ta-a-5a
+1C100 - 1C1FF chr pal hi 256b  ta-a-5b
+1C200 - 1C2FF spr pal    256b  ta-b-3d
+1C300 - 1C31F spr lut     32b  ta-b-1b
+*/
+
+wire [24:0] sp_ioctl_addr = ioctl_addr - 17'h10000; //SP ROM offset: 0x10000
+
+reg port1_req, port2_req;
+sdram sdram(
+	.*,
+	.init_n        ( pll_locked   ),
+	.clk           ( clk_sd      ),
+
+	// port1 used for main + sound CPU
+	.port1_req     ( port1_req    ),
+	.port1_ack     ( ),
+	.port1_a       ( ioctl_addr[23:1] ),
+	.port1_ds      ( {ioctl_addr[0], ~ioctl_addr[0]} ),
+	.port1_we      ( ioctl_download ),
+	.port1_d       ( {ioctl_dout, ioctl_dout} ),
+	.port1_q       ( ),
+
+	.cpu1_addr     ( ioctl_download ? 16'hffff : {2'b00, rom_addr[14:1]} ),
+	.cpu1_q        ( rom_do ),
+	.cpu2_addr     ( ioctl_download ? 16'hffff : snd_addr ),
+	.cpu2_q        ( snd_do ),
+
+	// port2 for sprite graphics
+	.port2_req     ( port2_req ),
+	.port2_ack     ( ),
+	.port2_a       ( {sp_ioctl_addr[23:16], sp_ioctl_addr[13:0], sp_ioctl_addr[15]} ), // merge sprite roms to 32-bit wide words
+	.port2_ds      ( {sp_ioctl_addr[14], ~sp_ioctl_addr[14]} ),
+	.port2_we      ( ioctl_download ),
+	.port2_d       ( {ioctl_dout, ioctl_dout} ),
+	.port2_q       ( ),
+
+	.sp_addr       ( ioctl_download ? 15'h7fff : sp_addr ),
+	.sp_q          ( sp_do )
+);
+
+// ROM download controller
+always @(posedge clk_sd) begin
+	reg ioctl_wr_last = 0;
+
+	ioctl_wr_last <= ioctl_wr;
+	if (ioctl_download) begin
+		if (~ioctl_wr_last && ioctl_wr) begin
+			port1_req <= ~port1_req;
+			port2_req <= ~port2_req;
+		end
+	end
+
+	// async clock domain crossing here (clk_aud -> clk_sys)
+	snd_vma_r <= snd_vma;
+	snd_vma_r2 <= snd_vma_r;
+	if (snd_vma_r2) snd_addr <= 16'h4000 + snd_rom_addr[12:1];
+end
+
+// reset signal generation
+reg reset = 1;
+reg rom_loaded = 0;
+always @(posedge clk_sys) begin
+	reg ioctl_downloadD;
+	reg [15:0] reset_count;
+	ioctl_downloadD <= ioctl_download;
+
+	if (status[0] | buttons[1] | ~rom_loaded) reset_count <= 16'hffff;
+	else if (reset_count != 0) reset_count <= reset_count - 1'd1;
+
+	if (ioctl_downloadD & ~ioctl_download) rom_loaded <= 1;
+	reset <= reset_count != 16'h0000;
+
+end
+
 // load the DIPS
 reg [7:0] sw[8];
 always @(posedge clk_sys) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
 
-wire m_left   =  joystick_0[1];
-wire m_right  =  joystick_0[0];
-wire m_gas    =  joystick_0[4];
-wire m_brake  =  joystick_0[5];
+wire m_up     = joystick_0[3];
+wire m_down   = joystick_0[2];
+wire m_left   = joystick_0[1];
+wire m_right  = joystick_0[0];
+wire m_gas    = joystick_0[4];
+wire m_trick  = joystick_0[5];
 
-wire m_left_2  = joystick_1[1];
-wire m_right_2 = joystick_1[0];
-wire m_gas_2   = joystick_1[4];
-wire m_brake_2 = joystick_1[5];
+wire m_up2    = joystick_1[3];
+wire m_down2  = joystick_1[2];
+wire m_left2  = joystick_1[1];
+wire m_right2 = joystick_1[0];
+wire m_gas2   = joystick_1[4];
+wire m_trick2 = joystick_1[5];
 
 wire m_start1 = joystick_0[6];
+wire m_coin1  = joystick_0[7];
 wire m_start2 = joystick_1[6];
-wire m_coin   = joy[7];
+wire m_coin2  = joystick_1[7];
 
 wire hblank, vblank;
+wire blankn;
 wire hs, vs;
-wire [1:0] rs;
-wire [2:0] g;
-wire [2:0] b;
-wire [2:0] r={rs,1'b0};
+wire [1:0] r;
+wire [2:0] g, b;
+wire [2:0] red   = blankn ? {r, r[1] } : 0;
+wire [2:0] green = blankn ? g : 0;
+wire [2:0] blue  = blankn ? b : 0;
 
 reg ce_pix;
 always @(posedge clk_48) begin
@@ -316,7 +412,7 @@ arcade_video #(384,9) arcade_video
 
 	.clk_video(clk_48),
 
-	.RGB_in({r,g,b}),
+	.RGB_in({red,green,blue}),
 	.HBlank(hblank),
 	.VBlank(vblank),
 	.HSync(hs),
@@ -329,5 +425,45 @@ wire [10:0] audio;
 assign AUDIO_L = {audio, 5'd0};
 assign AUDIO_R = {audio, 5'd0};
 assign AUDIO_S = 0;
+
+TropicalAngel TropicalAngel
+(
+	.clock_36(clk_sys),
+	.clock_0p895(clk_aud),
+	.reset(reset),
+
+	.palmode(palmode),
+
+	.video_r(rs),
+	.video_g(g),
+	.video_b(b),
+	.video_hs(hs),
+	.video_vs(vs),
+	.video_hblank(hblank),
+	.video_vblank(vblank),
+	.video_blankn(blankn),
+
+	.audio_out(audio),
+
+	.cpu_rom_addr(rom_addr),
+	.cpu_rom_do(rom_addr[0] ? rom_do[15:8] : rom_do[7:0]),
+	.snd_rom_addr(snd_rom_addr),
+	.snd_rom_do(snd_rom_addr[0] ? snd_do[15:8] : snd_do[7:0]),
+	.snd_rom_vma(snd_vma),
+	.sp_addr(sp_addr),
+	.sp_graphx32_do(sp_do),
+
+	.dip_switch_1(dip1),
+	.dip_switch_2(dip2),
+
+	.input_0(~{4'd0, m_coin1, 1'b0 /*service*/, m_start2, m_start1}),
+	.input_1(~{m_gas, 1'b0, m_trick, 1'b0, m_up, m_down, m_left, m_right}),
+	.input_2(~{m_gas2, 1'b0, m_trick2, m_coin2, m_up2, m_down2, m_left2, m_right2}),
+
+	.dl_clk(clk_sd),
+	.dl_addr(ioctl_addr[16:0]),
+	.dl_data(ioctl_dout),
+	.dl_wr(ioctl_wr)
+);
 
 endmodule
