@@ -241,12 +241,17 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys;
+wire clk_sd, clk_sys, clk_aud, clk_dac;
+wire pll_locked;
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sys)
+	.outclk_0(clk_sd),  // 73.727997 MHz
+	.outclk_1(clk_sys), // 36.863998 MHz
+	.outclk_2(clk_aud), // 0.895 MHz
+	.outclk_3(clk_dac), // 89.5 MHz
+	.locked(pll_locked)
 );
 
 wire reset = RESET | status[0] | buttons[1];
