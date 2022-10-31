@@ -180,7 +180,6 @@ assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
 assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;
 
-assign VGA_SL = 0;
 assign VGA_F1 = 0;
 assign VGA_SCALER  = 0;
 assign VGA_DISABLE = 0;
@@ -281,8 +280,8 @@ pll pll
 );
 
 // wire reset = RESET | status[0] | buttons[1];
-reg reset;
-always @(posedge clk_sys) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
+// reg reset;
+// always @(posedge clk_sys) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
 
 //////////////////////////////////////////////////////////////////
 
@@ -300,7 +299,8 @@ always @(posedge clk_sys) reset <=(RESET | status[0] | buttons[1] | ioctl_downlo
 wire [24:0] sp_ioctl_addr = ioctl_addr - 17'h10000; //SP ROM offset: 0x10000
 
 reg port1_req, port2_req;
-sdram sdram(
+sdram sdram
+(
 	.*,
 	.init_n        ( pll_locked   ),
 	.clk           ( clk_sd      ),
@@ -358,7 +358,7 @@ always @(posedge clk_sys) begin
 	reg [15:0] reset_count;
 	ioctl_downloadD <= ioctl_download;
 
-	if (status[0] | buttons[1] | ~rom_loaded) reset_count <= 16'hffff;
+	if (RESET | status[0] | buttons[1] | ~rom_loaded) reset_count <= 16'hffff;
 	else if (reset_count != 0) reset_count <= reset_count - 1'd1;
 
 	if (ioctl_downloadD & ~ioctl_download) rom_loaded <= 1;
