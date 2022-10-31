@@ -1,5 +1,17 @@
-set_global_assignment -name VERILOG_FILE rtl/lfsr.v
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/cos.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/mycore.v
-set_global_assignment -name SDC_FILE mycore.sdc
-set_global_assignment -name SYSTEMVERILOG_FILE mycore.sv
+set_global_assignment -name SDC_FILE Arcade-TropicalAngel.sdc
+set_global_assignment -name SYSTEMVERILOG_FILE Arcade-TropicalAngel.sv
+
+set_global_assignment -name VHDL_FILE rtl/dpram.vhd
+set_global_assignment -name VHDL_FILE rtl/gen_ram.vhd
+set_global_assignment -name VHDL_FILE rtl/moon_patrol_sound_board.vhd
+set_global_assignment -name VHDL_FILE rtl/TropicalAngel.vhd
+set_global_assignment -name SYSTEMVERILOG_FILE sdram.sv
+
+set_global_assignment -name VHDL_FILE rtl/6800/cpu68.vhd
+
+set_global_assignment -name QIP_FILE rtl/jt5205/jt5205.qip
+
+set_global_assignment -name QIP_FILE rtl/T80/T80.qip
+
+set_global_assignment -name VHDL_FILE rtl/ym2149/vol_table_array.vhd
+set_global_assignment -name VHDL_FILE rtl/ym2149/YM2149.vhd
