@@ -178,7 +178,7 @@ assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
-assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
+assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;
 
 assign VGA_SL = 0;
 assign VGA_F1 = 0;
@@ -202,33 +202,20 @@ wire [1:0] ar = status[122:121];
 assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
 assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 
-`include "build_id.v" 
+`include "build_id.v"
 localparam CONF_STR = {
 	"A.TropicalAngel;;",
 	"-;",
-	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"O[2],TV Mode,NTSC,PAL;",
-	"O[4:3],Noise,White,Red,Green,Blue;",
+	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
+	"H0O[3],Orientation,Vert,Horz;",
+	"O[6:4],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"-;",
-	"P1,Test Page 1;",
-	"P1-;",
-	"P1-, -= Options in page 1 =-;",
-	"P1-;",
-	"P1O[5],Option 1-1,Off,On;",
-	"d0P1F1,BIN;",
-	"H0P1O[10],Option 1-2,Off,On;",
+	"DIP;",
 	"-;",
-	"P2,Test Page 2;",
-	"P2-;",
-	"P2-, -= Options in page 2 =-;",
-	"P2-;",
-	"P2S0,DSK;",
-	"P2O[7:6],Option 2,1,2,3,4;",
-	"-;",
-	"-;",
-	"T[0],Reset;",
 	"R[0],Reset and close OSD;",
-	"V,v",`BUILD_DATE 
+	"J1,Gas,Trick,Start,Coin;",
+	"jn,A,B,Start,Select;",
+	"V,v",`BUILD_DATE
 };
 
 wire forced_scandoubler;
@@ -248,7 +235,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.buttons(buttons),
 	.status(status),
 	.status_menumask({status[5]}),
-	
+
 	.ps2_key(ps2_key)
 );
 
@@ -279,7 +266,7 @@ TropicalAngel TropicalAngel
 (
 	.clk(clk_sys),
 	.reset(reset),
-	
+
 	.pal(status[2]),
 	.scandouble(forced_scandoubler),
 
@@ -304,7 +291,7 @@ assign VGA_R  = (!col || col == 1) ? video : 8'd0;
 assign VGA_B  = (!col || col == 3) ? video : 8'd0;
 
 reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
+always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
 assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
 
 endmodule
