@@ -218,25 +218,46 @@ localparam CONF_STR = {
 	"V,v",`BUILD_DATE
 };
 
-wire forced_scandoubler;
-wire   [1:0] buttons;
 wire [127:0] status;
-wire  [10:0] ps2_key;
+wire   [1:0] buttons;
+
+wire forced_scandoubler;
+wire direct_video;
+
+wire        ioctl_download;
+wire        ioctl_wr;
+wire [24:0] ioctl_addr;
+wire  [7:0] ioctl_dout;
+wire  [7:0] ioctl_index;
+
+wire [15:0] joystick_0,joystick_1;
+wire [15:0] joy = joystick_0 | joystick_1;
+
+wire [21:0] gamma_bus;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
+
 	.EXT_BUS(),
-	.gamma_bus(),
+	.gamma_bus(gamma_bus),
+	.direct_video(direct_video),
 
 	.forced_scandoubler(forced_scandoubler),
 
 	.buttons(buttons),
 	.status(status),
-	.status_menumask({status[5]}),
+	.status_menumask({direct_video}),
 
-	.ps2_key(ps2_key)
+	.ioctl_download(ioctl_download),
+	.ioctl_wr(ioctl_wr),
+	.ioctl_addr(ioctl_addr),
+	.ioctl_dout(ioctl_dout),
+	.ioctl_index(ioctl_index),
+
+	.joystick_0(joystick_0),
+	.joystick_1(joystick_1)
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
@@ -258,45 +279,22 @@ wire reset = RESET | status[0] | buttons[1];
 
 //////////////////////////////////////////////////////////////////
 
-wire [1:0] col = status[4:3];
+// load the DIPS
+reg [7:0] sw[8];
+always @(posedge clk_sys) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
 
-wire HBlank;
-wire HSync;
-wire VBlank;
-wire VSync;
-wire ce_pix;
-wire [7:0] video;
+wire m_left   =  joystick_0[1];
+wire m_right  =  joystick_0[0];
+wire m_gas    =  joystick_0[4];
+wire m_brake  =  joystick_0[5];
 
-TropicalAngel TropicalAngel
-(
-	.clk(clk_sys),
-	.reset(reset),
+wire m_left_2  = joystick_1[1];
+wire m_right_2 = joystick_1[0];
+wire m_gas_2   = joystick_1[4];
+wire m_brake_2 = joystick_1[5];
 
-	.pal(status[2]),
-	.scandouble(forced_scandoubler),
-
-	.ce_pix(ce_pix),
-
-	.HBlank(HBlank),
-	.HSync(HSync),
-	.VBlank(VBlank),
-	.VSync(VSync),
-
-	.video(video)
-);
-
-assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = ce_pix;
-
-assign VGA_DE = ~(HBlank | VBlank);
-assign VGA_HS = HSync;
-assign VGA_VS = VSync;
-assign VGA_G  = (!col || col == 2) ? video : 8'd0;
-assign VGA_R  = (!col || col == 1) ? video : 8'd0;
-assign VGA_B  = (!col || col == 3) ? video : 8'd0;
-
-reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
-assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
+wire m_start1 = joystick_0[6];
+wire m_start2 = joystick_1[6];
+wire m_coin   = joy[7];
 
 endmodule
