@@ -401,7 +401,7 @@ wire [2:0] green = blankn ? g : 0;
 wire [2:0] blue  = blankn ? b : 0;
 
 reg ce_pix;
-always @(posedge clk_48) begin
+always @(posedge clk_sys) begin
 	reg [2:0] div;
 
 	div <= div + 1'd1;
