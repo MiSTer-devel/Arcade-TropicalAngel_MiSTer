@@ -412,7 +412,7 @@ arcade_video #(384,9) arcade_video
 (
 	.*,
 
-	.clk_video(clk_48),
+	.clk_video(clk_sys),
 
 	.RGB_in({red,green,blue}),
 	.HBlank(hblank),
