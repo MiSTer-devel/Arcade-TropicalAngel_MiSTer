@@ -436,7 +436,7 @@ TropicalAngel TropicalAngel
 
 	.palmode(palmode),
 
-	.video_r(rs),
+	.video_r(r),
 	.video_g(g),
 	.video_b(b),
 	.video_hs(hs),
