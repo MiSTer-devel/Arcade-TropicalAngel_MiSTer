@@ -242,7 +242,7 @@ wire  [21:0] gamma_bus;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
-	.clk_sys(clk_sys),
+	.clk_sys(clk_36),
 	.HPS_BUS(HPS_BUS),
 
 	.EXT_BUS(),
@@ -267,21 +267,21 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sd, clk_sys, clk_aud;
+wire clk_48, clk_36;
+wire clk_sys = clk_36;
 wire pll_locked;
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sd),  // 73.727997 MHz
-	.outclk_1(clk_sys), // 36.863998 MHz
-	.outclk_2(clk_aud), // 0.895 MHz
+	.outclk_0(clk_48),
+	.outclk_1(clk_36),
 	.locked(pll_locked)
 );
 
 // wire reset = RESET | status[0] | buttons[1];
 // reg reset;
-// always @(posedge clk_sys) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
+// always @(posedge clk_36) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
 
 //////////////////////////////////////////////////////////////////
 
@@ -303,7 +303,7 @@ sdram sdram
 (
 	.*,
 	.init_n        ( pll_locked   ),
-	.clk           ( clk_sd      ),
+	.clk           ( clk_48      ),
 
 	// port1 used for main + sound CPU
 	.port1_req     ( port1_req    ),
@@ -335,7 +335,7 @@ sdram sdram
 );
 
 // ROM download controller
-always @(posedge clk_sd) begin
+always @(posedge clk_48) begin
 	reg ioctl_wr_last = 0;
 
 	ioctl_wr_last <= ioctl_wr;
@@ -346,7 +346,7 @@ always @(posedge clk_sd) begin
 		end
 	end
 
-	// async clock domain crossing here (clk_aud -> clk_sys)
+	// async clock domain crossing here (clk_aud -> clk_36)
 	snd_vma_r <= snd_vma;
 	snd_vma_r2 <= snd_vma_r;
 	if (snd_vma_r2) snd_addr <= 16'h4000 + snd_rom_addr[12:1];
@@ -355,7 +355,7 @@ end
 // reset signal generation
 reg reset = 1;
 reg rom_loaded = 0;
-always @(posedge clk_sys) begin
+always @(posedge clk_36) begin
 	reg ioctl_downloadD;
 	reg [15:0] reset_count;
 	ioctl_downloadD <= ioctl_download;
@@ -370,7 +370,7 @@ end
 
 // load the DIPS
 reg [7:0] sw[8];
-always @(posedge clk_sys) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
+always @(posedge clk_48) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
 
 wire m_up     = joystick_0[3];
 wire m_down   = joystick_0[2];
@@ -401,7 +401,7 @@ wire [2:0] green = blankn ? g : 0;
 wire [2:0] blue  = blankn ? b : 0;
 
 reg ce_pix;
-always @(posedge clk_sys) begin
+always @(posedge clk_48) begin
 	reg [2:0] div;
 
 	div <= div + 1'd1;
@@ -412,7 +412,7 @@ arcade_video #(384,9) arcade_video
 (
 	.*,
 
-	.clk_video(clk_sys),
+	.clk_video(clk_48),
 
 	.RGB_in({red,green,blue}),
 	.HBlank(hblank),
@@ -428,9 +428,21 @@ assign AUDIO_L = {audio, 5'd0};
 assign AUDIO_R = {audio, 5'd0};
 assign AUDIO_S = 0;
 
+reg clk_aud;
+always @(posedge clk_36) begin
+	reg [15:0] sum;
+
+	aud_ce = 0;
+	sum = sum + 16'd895;
+	if(sum >= 36000) begin
+		sum = sum - 16'd36000;
+		clk_aud = 1;
+	end
+end
+
 TropicalAngel TropicalAngel
 (
-	.clock_36(clk_sys),
+	.clock_36(clk_36),
 	.clock_0p895(clk_aud),
 	.reset(reset),
 
@@ -462,14 +474,14 @@ TropicalAngel TropicalAngel
 	.input_1(~{m_gas, 1'b0, m_trick, 1'b0, m_up, m_down, m_left, m_right}),
 	.input_2(~{m_gas2, 1'b0, m_trick2, m_coin2, m_up2, m_down2, m_left2, m_right2}),
 
-	.dl_clk(clk_sd),
+	.dl_clk(clk_48),
 	.dl_addr(ioctl_addr[16:0]),
 	.dl_data(ioctl_dout),
 	.dl_wr(ioctl_wr)
 );
 
 reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
+always @(posedge clk_36) act_cnt <= act_cnt + 1'd1;
 assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
 
 endmodule
