@@ -177,8 +177,6 @@ assign ADC_BUS  = 'Z;
 assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
-assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
-assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;
 
 assign VGA_F1 = 0;
 assign VGA_SCALER  = 0;
@@ -205,6 +203,7 @@ localparam CONF_STR = {
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"O[6],Video Timing,Original,Pal 50Hz;",
+	"H0O[7],Orientation,Vert,Horz;",
 	"-;",
 	"DIP;",
 	"-;",
@@ -219,6 +218,7 @@ wire   [1:0] buttons;
 wire         palmode = status[6];
 wire         forced_scandoubler;
 wire         direct_video;
+wire         video_rotated;
 
 wire  [14:0] rom_addr;
 wire  [15:0] rom_do;
@@ -248,6 +248,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.EXT_BUS(),
 	.gamma_bus(gamma_bus),
 	.direct_video(direct_video),
+	.video_rotated(video_rotated),
 
 	.forced_scandoubler(forced_scandoubler),
 
@@ -267,7 +268,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_48, clk_36;
+wire clk_48, clk_36, clk_72;
 wire clk_sys = clk_36;
 wire pll_locked;
 pll pll
@@ -276,6 +277,7 @@ pll pll
 	.rst(0),
 	.outclk_0(clk_48),
 	.outclk_1(clk_36),
+	.outclk_2(clk_72),
 	.locked(pll_locked)
 );
 
@@ -303,7 +305,7 @@ sdram sdram
 (
 	.*,
 	.init_n        ( pll_locked   ),
-	.clk           ( clk_48      ),
+	.clk           ( clk_72       ),
 
 	// port1 used for main + sound CPU
 	.port1_req     ( port1_req    ),
@@ -335,7 +337,7 @@ sdram sdram
 );
 
 // ROM download controller
-always @(posedge clk_48) begin
+always @(posedge clk_72) begin
 	reg ioctl_wr_last = 0;
 
 	ioctl_wr_last <= ioctl_wr;
@@ -370,7 +372,7 @@ end
 
 // load the DIPS
 reg [7:0] sw[8];
-always @(posedge clk_48) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
+always @(posedge clk_72) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
 
 wire m_up     = joystick_0[3];
 wire m_down   = joystick_0[2];
@@ -408,6 +410,12 @@ always @(posedge clk_48) begin
 	ce_pix <= !div;
 end
 
+wire no_rotate  = status[7] | direct_video ;
+wire rotate_ccw = 1;
+wire flip       = 1;
+
+screen_rotate screen_rotate (.*);
+
 arcade_video #(384,9) arcade_video
 (
 	.*,
@@ -432,7 +440,7 @@ reg clk_aud;
 always @(posedge clk_36) begin
 	reg [15:0] sum;
 
-	aud_ce = 0;
+	clk_aud = 0;
 	sum = sum + 16'd895;
 	if(sum >= 36000) begin
 		sum = sum - 16'd36000;
@@ -474,7 +482,7 @@ TropicalAngel TropicalAngel
 	.input_1(~{m_gas, 1'b0, m_trick, 1'b0, m_up, m_down, m_left, m_right}),
 	.input_2(~{m_gas2, 1'b0, m_trick2, m_coin2, m_up2, m_down2, m_left2, m_right2}),
 
-	.dl_clk(clk_48),
+	.dl_clk(clk_72),
 	.dl_addr(ioctl_addr[16:0]),
 	.dl_data(ioctl_dout),
 	.dl_wr(ioctl_wr)
