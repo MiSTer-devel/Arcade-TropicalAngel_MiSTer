@@ -182,10 +182,12 @@ assign VGA_F1 = 0;
 assign VGA_SCALER  = 0;
 assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
+assign FB_FORCE_BLANK = 0;
 
 assign AUDIO_MIX = 0;
 
 assign LED_DISK = 0;
+assign LED_USER = ioctl_download;
 assign LED_POWER = 0;
 assign BUTTONS = 0;
 
@@ -193,8 +195,8 @@ assign BUTTONS = 0;
 
 wire [1:0] ar = status[122:121];
 
-assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
+assign VIDEO_ARX = (!ar) ? (status[7] ? 9'd4 : 9'd3) : (ar - 1'd1);
+assign VIDEO_ARY = (!ar) ? (status[7] ? 9'd3 : 9'd4) : 12'd0;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -281,9 +283,8 @@ pll pll
 	.locked(pll_locked)
 );
 
-// wire reset = RESET | status[0] | buttons[1];
-// reg reset;
-// always @(posedge clk_36) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
+reg reset;
+always @(posedge clk_36) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
 
 //////////////////////////////////////////////////////////////////
 
@@ -354,21 +355,23 @@ always @(posedge clk_72) begin
 	if (snd_vma_r2) snd_addr <= 16'h4000 + snd_rom_addr[12:1];
 end
 
-// reset signal generation
-reg reset = 1;
-reg rom_loaded = 0;
-always @(posedge clk_36) begin
-	reg ioctl_downloadD;
-	reg [15:0] reset_count;
-	ioctl_downloadD <= ioctl_download;
+// // reset signal generation
+// reg reset = 1;
+// reg rom_loaded = 0;
+// always @(posedge clk_36) begin
+// 	reg ioctl_downloadD;
+// 	reg [15:0] reset_count;
+// 	ioctl_downloadD <= ioctl_download;
 
-	if (RESET | status[0] | buttons[1] | ~rom_loaded) reset_count <= 16'hffff;
-	else if (reset_count != 0) reset_count <= reset_count - 1'd1;
+// 	if (RESET | status[0] | buttons[1] | ~rom_loaded) reset_count <= 16'hffff;
+// 	else if (reset_count != 0) reset_count <= reset_count - 1'd1;
 
-	if (ioctl_downloadD & ~ioctl_download) rom_loaded <= 1;
-	reset <= reset_count != 16'h0000;
+// 	if (ioctl_downloadD & ~ioctl_download) rom_loaded <= 1;
+// 	reset <= reset_count != 16'h0000;
 
-end
+// end
+
+
 
 // load the DIPS
 reg [7:0] sw[8];
@@ -487,9 +490,5 @@ TropicalAngel TropicalAngel
 	.dl_data(ioctl_dout),
 	.dl_wr(ioctl_wr)
 );
-
-reg  [26:0] act_cnt;
-always @(posedge clk_36) act_cnt <= act_cnt + 1'd1;
-assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
 
 endmodule
