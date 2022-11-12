@@ -29,7 +29,7 @@ There is a 1P Start and a 2P Start. Each player's start button mapped correspond
 
 ## To-Do
 
-Investigate water color being inaccurate, need confirmation from real game footage or someone with one of the rare boards to get measurements, pictures on posters are not enough to go on and would only be an assumption.
+We need to investigate whether or not the purple water color is inaccurate, we need confirmation from real game footage or someone with one of the rare boards to get measurements, pictures on posters are not enough to go on and would only be an assumption.
 
 ## ROM Files Instructions
 
