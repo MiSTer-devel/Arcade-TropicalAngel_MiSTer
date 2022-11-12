@@ -373,9 +373,9 @@ end
 
 
 
-// load the DIPS
-reg [7:0] sw[8];
-always @(posedge clk_72) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
+// // load the DIPS
+// reg [7:0] sw[8];
+// always @(posedge clk_72) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
 
 wire m_up     = joystick_0[3];
 wire m_down   = joystick_0[2];
