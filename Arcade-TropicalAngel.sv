@@ -195,8 +195,8 @@ assign BUTTONS = 0;
 
 wire [1:0] ar = status[122:121];
 
-assign VIDEO_ARX = (!ar) ? (status[7] ? 9'd4 : 9'd3) : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? (status[7] ? 9'd3 : 9'd4) : 12'd0;
+assign VIDEO_ARX = (!ar) ? (status[7] ? 9'd3 : 9'd4) : (ar - 1'd1);
+assign VIDEO_ARY = (!ar) ? (status[7] ? 9'd4 : 9'd3) : 12'd0;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -206,8 +206,8 @@ localparam CONF_STR = {
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"O[6],Video Timing,Original,Pal 50Hz;",
 	"H0O[7],Orientation,Vert,Horz;",
-	"-;",
-	"DIP;",
+	"O[8],Flip,Off,On;",
+	"O[9],Invulnerability,Off,On;",
 	"-;",
 	"R[0],Reset and close OSD;",
 	"J1,Gas,Trick,Start,Coin;",
@@ -218,6 +218,8 @@ localparam CONF_STR = {
 wire [127:0] status;
 wire   [1:0] buttons;
 wire         palmode = status[6];
+wire         flipvid = status[8];
+wire         invuln  = status[9];
 wire         forced_scandoubler;
 wire         direct_video;
 wire         video_rotated;
@@ -283,8 +285,7 @@ pll pll
 	.locked(pll_locked)
 );
 
-reg reset;
-always @(posedge clk_36) reset <=(RESET | status[0] | buttons[1] | ioctl_download);
+wire reset = (RESET | status[0] | buttons[1] | ioctl_download);
 
 //////////////////////////////////////////////////////////////////
 
@@ -371,12 +372,6 @@ end
 
 // end
 
-
-
-// // load the DIPS
-// reg [7:0] sw[8];
-// always @(posedge clk_72) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
-
 wire m_up     = joystick_0[3];
 wire m_down   = joystick_0[2];
 wire m_left   = joystick_0[1];
@@ -415,7 +410,7 @@ end
 
 wire no_rotate  = status[7] | direct_video ;
 wire rotate_ccw = 1;
-wire flip       = 1;
+wire flip       = 0;
 
 screen_rotate screen_rotate (.*);
 
@@ -450,6 +445,9 @@ always @(posedge clk_36) begin
 		clk_aud = 1;
 	end
 end
+
+wire [7:0] dip1 = ~8'b00000010;
+wire [7:0] dip2 = ~{ 1'b0, invuln, 1'b0, 1'b0/*stop*/, 3'b010, flipvid };
 
 TropicalAngel TropicalAngel
 (
