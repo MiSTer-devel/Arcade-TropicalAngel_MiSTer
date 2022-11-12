@@ -10,7 +10,7 @@ Ported to MiSTer by [@birdybro](https://github.com/birdybro/) with help from [Mi
 
 ## Description
 
-This is a simulation model of the Irem M57 Arcade Hardware which only ran Tropical Angel. From the manual:
+This is a simulation model of the Irem M57 Arcade Hardware which only ran Tropical Angel. [From the manual](doc/manual_en.jpg):
 
 In TROPICAL ANGEL, you are the person who leads a beautiful lady known as TROPICAL ANGEL to achieve her goal of obtaining the highest grade in water ski, A MASTER OF WATER SKI.
 
