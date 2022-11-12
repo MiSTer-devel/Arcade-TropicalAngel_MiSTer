@@ -6,7 +6,7 @@ Based on Traverse USA by [@darfpga](https://github.com/darfpga/)
 
 Developed by [Slingshot](https://atari-forum.com/memberlist.php?mode=viewprofile&u=27648) for [MiST](https://github.com/Gehstock/Mist_FPGA/tree/master/Arcade_MiST/IremM57%20Hardware/TropicalAngel_MiST)
 
-Ported to MiSTer by [@birdybro](https://github.com/birdybro/)
+Ported to MiSTer by [@birdybro](https://github.com/birdybro/) with help from [Mike Simone](https://github.com/MikeS11/) and [Alan Steremberg](https://github.com/alanswx/)
 
 ## Description
 
