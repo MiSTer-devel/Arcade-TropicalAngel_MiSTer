@@ -2,7 +2,7 @@
 
 ![Tropical Angel Logo](doc/clear_logo.png)
 
-Based on Traverse USA by [@darfpga](https://github.com/darfpga/)
+Based on code from Traverse USA by [@darfpga](https://github.com/darfpga/)
 
 Developed by [Slingshot](https://atari-forum.com/memberlist.php?mode=viewprofile&u=27648) for [MiST](https://github.com/Gehstock/Mist_FPGA/tree/master/Arcade_MiST/IremM57%20Hardware/TropicalAngel_MiST)
 
