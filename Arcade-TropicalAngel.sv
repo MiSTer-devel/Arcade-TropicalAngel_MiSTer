@@ -193,7 +193,7 @@ assign BUTTONS = 0;
 
 //////////////////////////////////////////////////////////////////
 
-wire [1:0] ar = status[122:121];
+wire [1:0] ar = status[2:1];
 
 assign VIDEO_ARX = (!ar) ? (~status[7] ? 12'd240 : 12'd239) : (ar - 1'd1);
 assign VIDEO_ARY = (!ar) ? (~status[7] ? 12'd239 : 12'd240) : 12'd0;
