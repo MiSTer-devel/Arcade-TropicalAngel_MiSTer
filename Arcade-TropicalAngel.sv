@@ -343,7 +343,7 @@ always @(posedge clk_72) begin
 	reg ioctl_wr_last = 0;
 
 	ioctl_wr_last <= ioctl_wr;
-	if (ioctl_download) begin
+	if (ioctl_download & !ioctl_index) begin
 		if (~ioctl_wr_last && ioctl_wr) begin
 			port1_req <= ~port1_req;
 			port2_req <= ~port2_req;
@@ -409,7 +409,7 @@ always @(posedge clk_48) begin
 	ce_pix <= !div;
 end
 
-wire no_rotate  = status[7] | direct_video ;
+wire no_rotate  = status[7] | direct_video;
 wire rotate_ccw = 1;
 wire flip       = 0;
 
