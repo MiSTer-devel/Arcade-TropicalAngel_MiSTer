@@ -343,7 +343,7 @@ always @(posedge clk_72) begin
 	reg ioctl_wr_last = 0;
 
 	ioctl_wr_last <= ioctl_wr;
-	if (ioctl_download) begin
+	if (ioctl_download & !ioctl_index) begin
 		if (~ioctl_wr_last && ioctl_wr) begin
 			port1_req <= ~port1_req;
 			port2_req <= ~port2_req;
@@ -396,7 +396,8 @@ wire blankn;
 wire hs, vs;
 wire [1:0] r;
 wire [2:0] g, b;
-wire [2:0] red   = blankn ? {r, r[1] } : 0;
+wire [1:0] r_swap = {r[0], r[1]};
+wire [2:0] red   = blankn ? {r_swap, r_swap[1] } : 0;
 wire [2:0] green = blankn ? g : 0;
 wire [2:0] blue  = blankn ? b : 0;
 
@@ -408,7 +409,7 @@ always @(posedge clk_48) begin
 	ce_pix <= !div;
 end
 
-wire no_rotate  = status[7] | direct_video ;
+wire no_rotate  = status[7] | direct_video;
 wire rotate_ccw = 1;
 wire flip       = 0;
 
