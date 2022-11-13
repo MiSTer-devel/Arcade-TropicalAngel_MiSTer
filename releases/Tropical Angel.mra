@@ -18,32 +18,14 @@
   <about></about>
 
   <resolution>15kHz</resolution>
-  <rotation>Vertical</rotation>
+  <rotation>Horizontal</rotation>
   <flip></flip>
 
-  <players>1</players>
+  <players>2</players>
   <joystick>2-way</joystick>
   <special_controls></special_controls>
   <num_buttons>2</num_buttons>
   <button_names></button_names>
-
-<!-- Switch defaults later on, placeholders for now -->
-  <switches default="FF,FE,00">
-    <dip bits="0,1" ids="B:120/A:100/M:100/BG:80,B:140/A:120/M:100/BG:80,B:160/A:140/M:120/BG:100,B:180/A:160/M:140/BG:120" name="Time"></dip>
-    <dip bits="2" ids="10,5" name="Crash Loss Time"></dip>
-    <dip bits="3" ids="Music,Boat Motor" name="Background Sound"></dip>
-    <dip bits="4,5" ids="Free Play,1 Coin/1 Credit,2 Coins/1 Credit,3 Coins/1 Credit" name="Coin A"></dip>
-    <dip bits="6,7" ids="1 Coin/6 Credits,1 Coin/5 Credits,1 Coin/3 Credits,1 Coin/2 Credits" name="Coin B"></dip>
-    <dip bits="8,9,10,11" ids="Free Play,1 Coin/6 Credits,1 Coin/5 Credits,1 Coin/4 Credits,1 Coin/3 Credits,1 Coin/2 Credits,1 Coin/1 Credit,2 Coins/1 Credit,3 Coins/1 Credit,4 Coins/1 Credit,5 Coins/1 Credit,6 Coins/1 Credit" name="Coinage"></dip>
-    <dip bits="12" ids="On,Off" name="Flip Screen"></dip>
-    <dip bits="13" ids="Cocktail,Upright" name="Cabinet"></dip>
-    <dip bits="14" ids="Mode 2, Mode 1" name="Coin Mode"></dip>
-    <dip bits="15" ids="Yes,No" name="Analog Accelarator"></dip>
-    <dip bits="16" ids="On,Off" name="Stop Mode (Cheat)"></dip>
-    <dip bits="17" ids="On,Off" name="Unused"></dip>
-    <dip bits="18" ids="On,Off" name="Invulnerability (Cheat)"></dip>
-    <dip bits="19" ids="On,Off" name="Service Mode"></dip>
-  </switches>
 
   <rom index="0" zip="troangel.zip" md5="none" type="merged">
 
