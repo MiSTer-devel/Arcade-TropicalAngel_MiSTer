@@ -56,7 +56,7 @@ endmodule
 // Retrieval info: 	<generic name="device_family" value="Cyclone V" />
 // Retrieval info: 	<generic name="device" value="5CEBA2F17A7" />
 // Retrieval info: 	<generic name="gui_device_speed_grade" value="2" />
-// Retrieval info: 	<generic name="gui_pll_mode" value="Integer-N PLL" />
+// Retrieval info: 	<generic name="gui_pll_mode" value="Fractional-N PLL" />
 // Retrieval info: 	<generic name="gui_reference_clock_frequency" value="50.0" />
 // Retrieval info: 	<generic name="gui_channel_spacing" value="0.0" />
 // Retrieval info: 	<generic name="gui_operation_mode" value="direct" />
@@ -70,7 +70,7 @@ endmodule
 // Retrieval info: 	<generic name="gui_frac_multiply_factor" value="1" />
 // Retrieval info: 	<generic name="gui_divide_factor_n" value="1" />
 // Retrieval info: 	<generic name="gui_cascade_counter0" value="false" />
-// Retrieval info: 	<generic name="gui_output_clock_frequency0" value="48.0" />
+// Retrieval info: 	<generic name="gui_output_clock_frequency0" value="73.727996" />
 // Retrieval info: 	<generic name="gui_divide_factor_c0" value="1" />
 // Retrieval info: 	<generic name="gui_actual_output_clock_frequency0" value="0 MHz" />
 // Retrieval info: 	<generic name="gui_ps_units0" value="ps" />
@@ -79,7 +79,7 @@ endmodule
 // Retrieval info: 	<generic name="gui_actual_phase_shift0" value="0" />
 // Retrieval info: 	<generic name="gui_duty_cycle0" value="50" />
 // Retrieval info: 	<generic name="gui_cascade_counter1" value="false" />
-// Retrieval info: 	<generic name="gui_output_clock_frequency1" value="36.0" />
+// Retrieval info: 	<generic name="gui_output_clock_frequency1" value="36.863998" />
 // Retrieval info: 	<generic name="gui_divide_factor_c1" value="1" />
 // Retrieval info: 	<generic name="gui_actual_output_clock_frequency1" value="0 MHz" />
 // Retrieval info: 	<generic name="gui_ps_units1" value="ps" />
@@ -88,7 +88,7 @@ endmodule
 // Retrieval info: 	<generic name="gui_actual_phase_shift1" value="0" />
 // Retrieval info: 	<generic name="gui_duty_cycle1" value="50" />
 // Retrieval info: 	<generic name="gui_cascade_counter2" value="false" />
-// Retrieval info: 	<generic name="gui_output_clock_frequency2" value="72.0" />
+// Retrieval info: 	<generic name="gui_output_clock_frequency2" value="49.151997" />
 // Retrieval info: 	<generic name="gui_divide_factor_c2" value="1" />
 // Retrieval info: 	<generic name="gui_actual_output_clock_frequency2" value="0 MHz" />
 // Retrieval info: 	<generic name="gui_ps_units2" value="ps" />
