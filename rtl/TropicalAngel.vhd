@@ -89,7 +89,7 @@ port(
  video_r        : out std_logic_vector(1 downto 0);
  video_g        : out std_logic_vector(2 downto 0);
  video_b        : out std_logic_vector(2 downto 0);
- video_clk      : out std_logic;
+-- video_clk      : out std_logic;
  video_csync    : out std_logic;
  video_blankn   : out std_logic;
  video_hs       : out std_logic;
@@ -205,7 +205,8 @@ architecture struct of TropicalAngel is
  signal spr_en                : std_logic; 
  signal spr_pix_ena           : std_logic;
  signal spr_hcnt              : std_logic_vector( 9 downto 0);
- signal spr_posv, spr_posv_r  : std_logic_vector( 7 downto 0);
+ signal spr_posv              : std_logic_vector( 7 downto 0);
+-- signal spr_posv_r            : std_logic_vector( 7 downto 0); -- unused
  signal spr_attr, spr_attr_r  : std_logic_vector( 7 downto 0);
  signal spr_code, spr_code_r  : std_logic_vector( 7 downto 0);
  signal spr_posh, spr_posh_r  : std_logic_vector( 7 downto 0);
@@ -261,7 +262,7 @@ reset_n   <= not reset;
 sp_addr <= '0'& spr_code_line;
 
 -- debug 
-process (reset, clock_36)
+process (reset, clock_36, cpu_ena, cpu_mreq_n)
 begin
  if rising_edge(clock_36) and cpu_ena ='1' and cpu_mreq_n ='0' then
    dbg_cpu_addr <= cpu_addr;
@@ -416,7 +417,7 @@ begin
 			if spr_hcnt(2 downto 0) = "011" then spr_posh <= sprram_do; end if;
 			if spr_hcnt(2 downto 0) = "111" then
 				spr_posh_r <= spr_posh;
-				spr_posv_r <= spr_posv;
+--				spr_posv_r <= spr_posv; -- unused
 				spr_attr_r <= spr_attr;
 				spr_graphx1_do <= sp_graphx32_do(23 downto 16);
 				spr_graphx2_do <= sp_graphx32_do(15 downto  8);
