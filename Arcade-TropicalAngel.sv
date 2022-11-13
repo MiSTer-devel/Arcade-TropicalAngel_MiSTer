@@ -195,8 +195,8 @@ assign BUTTONS = 0;
 
 wire [1:0] ar = status[122:121];
 
-assign VIDEO_ARX = (!ar) ? (status[7] ? 12'd939 : 12'd956) : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? (status[7] ? 12'd956 : 12'd939) : 12'd0;
+assign VIDEO_ARX = (!ar) ? (~status[7] ? 12'd240 : 12'd239) : (ar - 1'd1);
+assign VIDEO_ARY = (!ar) ? (~status[7] ? 12'd239 : 12'd240) : 12'd0;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -205,7 +205,7 @@ localparam CONF_STR = {
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"O[6],Video Timing,Original,Pal 50Hz;",
-	"H0O[7],Orientation,Vert,Horz;",
+	"H0O[7],Orientation,Horz,Vert;",
 	"O[8],Flip,Off,On;",
 	"O[9],Invulnerability,Off,On;",
 	"-;",
@@ -240,13 +240,12 @@ wire   [7:0] ioctl_dout;
 wire   [7:0] ioctl_index;
 
 wire  [15:0] joystick_0,joystick_1;
-wire  [15:0] joy = joystick_0 | joystick_1;
 
 wire  [21:0] gamma_bus;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
-	.clk_sys(clk_36),
+	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
 
 	.EXT_BUS(),
@@ -272,16 +271,15 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_48, clk_36, clk_72;
-wire clk_sys = clk_36;
+wire clk_sys, clk_mem, clk_vid;
 wire pll_locked;
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_48),
-	.outclk_1(clk_36),
-	.outclk_2(clk_72),
+	.outclk_0(clk_mem), // 73.727996 MHz
+	.outclk_1(clk_sys), // 36.863998 MHz
+	.outclk_2(clk_vid), // 49.151997 MHz
 	.locked(pll_locked)
 );
 
@@ -307,7 +305,7 @@ sdram sdram
 (
 	.*,
 	.init_n        ( pll_locked   ),
-	.clk           ( clk_72       ),
+	.clk           ( clk_mem      ),
 
 	// port1 used for main + sound CPU
 	.port1_req     ( port1_req    ),
@@ -339,7 +337,7 @@ sdram sdram
 );
 
 // ROM download controller
-always @(posedge clk_72) begin
+always @(posedge clk_mem) begin
 	reg ioctl_wr_last = 0;
 
 	ioctl_wr_last <= ioctl_wr;
@@ -350,27 +348,11 @@ always @(posedge clk_72) begin
 		end
 	end
 
-	// async clock domain crossing here (clk_aud -> clk_36)
+	// async clock domain crossing here (clk_aud -> clk_sys)
 	snd_vma_r <= snd_vma;
 	snd_vma_r2 <= snd_vma_r;
 	if (snd_vma_r2) snd_addr <= 16'h4000 + snd_rom_addr[12:1];
 end
-
-// // reset signal generation
-// reg reset = 1;
-// reg rom_loaded = 0;
-// always @(posedge clk_36) begin
-// 	reg ioctl_downloadD;
-// 	reg [15:0] reset_count;
-// 	ioctl_downloadD <= ioctl_download;
-
-// 	if (RESET | status[0] | buttons[1] | ~rom_loaded) reset_count <= 16'hffff;
-// 	else if (reset_count != 0) reset_count <= reset_count - 1'd1;
-
-// 	if (ioctl_downloadD & ~ioctl_download) rom_loaded <= 1;
-// 	reset <= reset_count != 16'h0000;
-
-// end
 
 wire m_up     = joystick_0[3];
 wire m_down   = joystick_0[2];
@@ -402,24 +384,23 @@ wire [2:0] green = blankn ? g : 0;
 wire [2:0] blue  = blankn ? b : 0;
 
 reg ce_pix;
-always @(posedge clk_48) begin
+always @(posedge clk_vid) begin // Divide video clock by 8
 	reg [2:0] div;
-
 	div <= div + 1'd1;
 	ce_pix <= !div;
 end
 
-wire no_rotate  = status[7] | direct_video;
+wire no_rotate  = ~status[7] | direct_video;
 wire rotate_ccw = 1;
 wire flip       = 0;
 
 screen_rotate screen_rotate (.*);
 
-arcade_video #(384,9) arcade_video
+arcade_video #(240,9,1) arcade_video
 (
 	.*,
 
-	.clk_video(clk_48),
+	.clk_video(clk_vid),
 
 	.RGB_in({red,green,blue}),
 	.HBlank(hblank),
@@ -436,7 +417,7 @@ assign AUDIO_R = {audio, 5'd0};
 assign AUDIO_S = 0;
 
 reg clk_aud;
-always @(posedge clk_36) begin
+always @(posedge clk_sys) begin
 	reg [15:0] sum;
 
 	clk_aud = 0;
@@ -448,11 +429,11 @@ always @(posedge clk_36) begin
 end
 
 wire [7:0] dip1 = ~8'b00000010;
-wire [7:0] dip2 = ~{ 1'b0, invuln, 1'b0, 1'b0/*stop*/, 3'b010, flipvid };
+wire [7:0] dip2 = ~{ 1'b0, invuln, 1'b0, 1'b0/*stop*/, 3'b010, flipvid }; //defaults to 00000100
 
 TropicalAngel TropicalAngel
 (
-	.clock_36(clk_36),
+	.clock_36(clk_sys),
 	.clock_0p895(clk_aud),
 	.reset(reset),
 
@@ -484,7 +465,7 @@ TropicalAngel TropicalAngel
 	.input_1(~{m_gas, 1'b0, m_trick, 1'b0, m_up, m_down, m_left, m_right}),
 	.input_2(~{m_gas2, 1'b0, m_trick2, m_coin2, m_up2, m_down2, m_left2, m_right2}),
 
-	.dl_clk(clk_72),
+	.dl_clk(clk_mem),
 	.dl_addr(ioctl_addr[16:0]),
 	.dl_data(ioctl_dout),
 	.dl_wr(ioctl_wr)
