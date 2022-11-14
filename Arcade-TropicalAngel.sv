@@ -195,8 +195,8 @@ assign BUTTONS = 0;
 
 wire [1:0] ar = status[2:1];
 
-assign VIDEO_ARX = (!ar) ? (~status[7] ? 12'd240 : 12'd239) : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? (~status[7] ? 12'd239 : 12'd240) : 12'd0;
+assign VIDEO_ARX = (!ar) ? 12'd240 : (ar - 1'd1);
+assign VIDEO_ARY = (!ar) ? 12'd239 : 12'd0;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -204,25 +204,19 @@ localparam CONF_STR = {
 	"-;",
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-	"O[6],Video Timing,Original,Pal 50Hz;",
-	"H0O[7],Orientation,Horz,Vert;",
-	"O[8],Flip,Off,On;",
-	"O[9],Invulnerability,Off,On;",
 	"-;",
-	"R[0],Reset and close OSD;",
-	"J1,Gas,Trick,Start,Coin;",
+	"DIP;",
+	"-;",
+	"R[0],Reset;",
+	"J1,Gas,Reverse,Start,Coin;",
 	"jn,A,B,Start,Select;",
 	"V,v",`BUILD_DATE
 };
 
 wire [127:0] status;
 wire   [1:0] buttons;
-wire         palmode = status[6];
-wire         flipvid = status[8];
-wire         invuln  = status[9];
 wire         forced_scandoubler;
 wire         direct_video;
-wire         video_rotated;
 
 wire  [14:0] rom_addr;
 wire  [15:0] rom_do;
@@ -251,7 +245,6 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.EXT_BUS(),
 	.gamma_bus(gamma_bus),
 	.direct_video(direct_video),
-	.video_rotated(video_rotated),
 
 	.forced_scandoubler(forced_scandoubler),
 
@@ -354,6 +347,9 @@ always @(posedge clk_mem) begin
 	if (snd_vma_r2) snd_addr <= 16'h4000 + snd_rom_addr[12:1];
 end
 
+reg [7:0] sw[8];
+always @(posedge clk_sys) if (ioctl_wr && (ioctl_index==254) && !ioctl_addr[24:3]) sw[ioctl_addr[2:0]] <= ioctl_dout;
+
 wire m_up     = joystick_0[3];
 wire m_down   = joystick_0[2];
 wire m_left   = joystick_0[1];
@@ -373,6 +369,8 @@ wire m_coin1  = joystick_0[7];
 wire m_start2 = joystick_1[6];
 wire m_coin2  = joystick_1[7];
 
+// wire m_service = joystick_0[8] | joystick_1[8];
+
 wire hblank, vblank;
 wire blankn;
 wire hs, vs;
@@ -389,12 +387,6 @@ always @(posedge clk_vid) begin // Divide video clock by 8
 	div <= div + 1'd1;
 	ce_pix <= !div;
 end
-
-wire no_rotate  = ~status[7] | direct_video;
-wire rotate_ccw = 1;
-wire flip       = 0;
-
-screen_rotate screen_rotate (.*);
 
 arcade_video #(240,9,1) arcade_video
 (
@@ -428,16 +420,13 @@ always @(posedge clk_sys) begin
 	end
 end
 
-wire [7:0] dip1 = ~8'b00000010;
-wire [7:0] dip2 = ~{ 1'b0, invuln, 1'b0, 1'b0/*stop*/, 3'b010, flipvid }; //defaults to 00000100
-
 TropicalAngel TropicalAngel
 (
 	.clock_36(clk_sys),
 	.clock_0p895(clk_aud),
 	.reset(reset),
 
-	.palmode(palmode),
+	.palmode(),
 
 	.video_r(r),
 	.video_g(g),
@@ -458,10 +447,10 @@ TropicalAngel TropicalAngel
 	.sp_addr(sp_addr),
 	.sp_graphx32_do(sp_do),
 
-	.dip_switch_1(dip1),
-	.dip_switch_2(dip2),
+	.dip_switch_1(~sw[0]),
+	.dip_switch_2(~sw[1]),
 
-	.input_0(~{4'd0, m_coin1, 1'b0 /*service*/, m_start2, m_start1}),
+	.input_0(~{4'd0, m_coin1, 1'b0 /*service*/, m_start2, m_start1}), // first 4'd0 are likely analog gas, unused in this core currently, maybe later
 	.input_1(~{m_gas, 1'b0, m_trick, 1'b0, m_up, m_down, m_left, m_right}),
 	.input_2(~{m_gas2, 1'b0, m_trick2, m_coin2, m_up2, m_down2, m_left2, m_right2}),
 
