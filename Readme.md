@@ -21,9 +21,9 @@ In TROPICAL ANGEL, you are the person who leads a beautiful lady known as TROPIC
 | Name    | Description                 |
 | ------- | --------------------------- |
 | Gas     | Accelerate the boat         |
-| Trick   | Spin around for more points |
-| Left    | Steer boat left             |
-| Right   | Steer boat right            |
+| Reverse | Spin around for more points |
+| Left    | Ski Left                    |
+| Right   | Ski Right                   |
 | Coin    | Put in a coin               |
 | Start   | Start the game              |
 
