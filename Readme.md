@@ -14,6 +14,8 @@ This is a simulation model of the Irem M57 Arcade Hardware which only ran Tropic
 
 In TROPICAL ANGEL, you are the person who leads a beautiful lady known as TROPICAL ANGEL to achieve her goal of obtaining the highest grade in water ski, A MASTER OF WATER SKI.
 
+![MiSTer FPGA Screenshot](doc/mister-screenshot.jpg)
+
 ## Controls
 
 | Name    | Description                 |
@@ -29,7 +31,9 @@ There is a 1P Start and a 2P Start. Each player's start button mapped correspond
 
 ## To-Do
 
-We need to investigate whether or not the purple water color is inaccurate, we need confirmation from real game footage or someone with one of the rare boards to get measurements, pictures on posters are not enough to go on and would only be an assumption.
+* Hi-Score and Pause modules should be added.
+* H/V offsets module should be added to help users.
+* Potentially add toggle from 56.7hz to 59.94Hz similar to Ace's cores using a pll_reconfig for compatibility.
 
 ## ROM Files Instructions
 
@@ -42,8 +46,8 @@ Please refer to [Arcade Roms and MRA files](https://mister-devel.github.io/MkDoc
 Quick reference for folders and file placement:
 
 ```
-/_Arcade/<game name>.mra  
-/_Arcade/cores/<game rbf>.rbf  
-/_Arcade/mame/<mame rom>.zip  
-/_Arcade/hbmame/<hbmame rom>.zip  
+/_Arcade/<game name>.mra
+/_Arcade/cores/<game rbf>.rbf
+/_Arcade/mame/<mame rom>.zip
+/_Arcade/hbmame/<hbmame rom>.zip
 ```
