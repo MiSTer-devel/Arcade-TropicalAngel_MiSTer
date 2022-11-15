@@ -3,22 +3,22 @@
 //
 // sdram controller implementation for the MiST board
 // https://github.com/mist-devel/mist-board
-// 
-// Copyright (c) 2013 Till Harbaum <till@harbaum.org> 
+//
+// Copyright (c) 2013 Till Harbaum <till@harbaum.org>
 // Copyright (c) 2019 Gyorgy Szombathelyi
 //
-// This source file is free software: you can redistribute it and/or modify 
-// it under the terms of the GNU General Public License as published 
-// by the Free Software Foundation, either version 3 of the License, or 
-// (at your option) any later version. 
-// 
+// This source file is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
 // This source file is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of 
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License 
-// along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
 module sdram (
@@ -34,8 +34,8 @@ module sdram (
 	output            SDRAM_nRAS, // row address select
 	output            SDRAM_nCAS, // columns address select
 	output            SDRAM_CKE,
-	output            SDRAM_CLK, 
-	
+	output            SDRAM_CLK,
+
 	// cpu/chipset interface
 	input             init_n,     // init signal after FPGA config to initialize RAM
 	input             clk,        // sdram clock
@@ -62,7 +62,7 @@ module sdram (
 	input       [1:0] port2_ds,
 	input      [15:0] port2_d,
 	output reg [31:0] port2_q,
-	
+
 	input      [23:2] sp_addr,
 	output reg [31:0] sp_q
 );
@@ -78,7 +78,7 @@ localparam CAS_LATENCY    = 3'd2;   // 2/3 allowed
 localparam OP_MODE        = 2'b00;  // only 00 (standard operation) allowed
 localparam NO_WRITE_BURST = 1'b1;   // 0= write burst enabled, 1=only single access write
 
-localparam MODE = { 3'b000, NO_WRITE_BURST, OP_MODE, CAS_LATENCY, ACCESS_TYPE, BURST_LENGTH}; 
+localparam MODE = { 3'b000, NO_WRITE_BURST, OP_MODE, CAS_LATENCY, ACCESS_TYPE, BURST_LENGTH};
 
 // 64ms/8192 rows = 7.8us -> 842 cycles@108MHz
 localparam RFRSH_CYCLES = 10'd842;
@@ -91,14 +91,14 @@ localparam RFRSH_CYCLES = 10'd842;
  SDRAM state machine for 2 bank interleaved access
  1 word burst, CL2
 cmd issued  registered
- 0 RAS0     
+ 0 RAS0
  1          ras0, data1 returned
  2 CAS0     data1 returned
  3 RAS1     cas0
  4          ras1
  5 CAS1     data0 returned
  6          cas1, data0 returned (discarded)
- 
+
 */
 
 localparam STATE_FIRST     = 3'd0;   // first state in cycle

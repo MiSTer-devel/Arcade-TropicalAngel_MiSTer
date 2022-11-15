@@ -177,12 +177,12 @@ assign ADC_BUS  = 'Z;
 assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
+assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
 
 assign VGA_F1 = 0;
 assign VGA_SCALER  = 0;
 assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
-assign FB_FORCE_BLANK = 0;
 
 assign AUDIO_MIX = 0;
 
@@ -195,8 +195,8 @@ assign BUTTONS = 0;
 
 wire [1:0] ar = status[2:1];
 
-assign VIDEO_ARX = (!ar) ? 12'd240 : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? 12'd239 : 12'd0;
+assign VIDEO_ARX = (!ar) ? 12'd1 : (ar - 1'd1);
+assign VIDEO_ARY = (!ar) ? 12'd1 : 12'd0;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -264,7 +264,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys, clk_mem, clk_vid;
+wire clk_sys, clk_mem;
 wire pll_locked;
 pll pll
 (
@@ -272,7 +272,6 @@ pll pll
 	.rst(0),
 	.outclk_0(clk_mem), // 73.727996 MHz
 	.outclk_1(clk_sys), // 36.863998 MHz
-	.outclk_2(clk_vid), // 49.151997 MHz
 	.locked(pll_locked)
 );
 
@@ -377,14 +376,15 @@ wire hs, vs;
 wire [1:0] r;
 wire [2:0] g, b;
 wire [1:0] r_swap = {r[0], r[1]};
-wire [2:0] red   = blankn ? {r_swap, r_swap[1] } : 0;
-wire [2:0] green = blankn ? g : 0;
-wire [2:0] blue  = blankn ? b : 0;
+wire [2:0] red    = blankn ? {r_swap, r_swap[1] } : 0;
+wire [2:0] green  = blankn ? g : 0;
+wire [2:0] blue   = blankn ? b : 0;
 
 reg ce_pix;
-always @(posedge clk_vid) begin // Divide video clock by 8
+always @(posedge clk_sys) begin
 	reg [2:0] div;
 	div <= div + 1'd1;
+	if (div == 3'd5) div <= 3'd0; // Divide video clock by 6
 	ce_pix <= !div;
 end
 
@@ -392,7 +392,7 @@ arcade_video #(240,9,1) arcade_video
 (
 	.*,
 
-	.clk_video(clk_vid),
+	.clk_video(clk_sys),
 
 	.RGB_in({red,green,blue}),
 	.HBlank(hblank),
@@ -410,12 +410,12 @@ assign AUDIO_S = 0;
 
 reg clk_aud;
 always @(posedge clk_sys) begin
-	reg [15:0] sum;
+	reg [25:0] sum = 0;
 
 	clk_aud = 0;
-	sum = sum + 16'd895;
-	if(sum >= 36000) begin
-		sum = sum - 16'd36000;
+	sum = sum + 26'd895000;
+	if(sum >= 36863998) begin
+		sum = sum - 26'd36863998;
 		clk_aud = 1;
 	end
 end
@@ -450,7 +450,8 @@ TropicalAngel TropicalAngel
 	.dip_switch_1(~sw[0]),
 	.dip_switch_2(~sw[1]),
 
-	.input_0(~{4'd0, m_coin1, 1'b0 /*service*/, m_start2, m_start1}), // first 4'd0 are likely analog gas, unused in this core currently, maybe later
+	// first 4'd0 are likely analog gas, unused in this core currently, maybe later
+	.input_0(~{4'd0, m_coin1, 1'b0 /*m_service just spams coin when held*/, m_start2, m_start1}),
 	.input_1(~{m_gas, 1'b0, m_trick, 1'b0, m_up, m_down, m_left, m_right}),
 	.input_2(~{m_gas2, 1'b0, m_trick2, m_coin2, m_up2, m_down2, m_left2, m_right2}),
 

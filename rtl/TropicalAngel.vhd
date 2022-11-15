@@ -4,7 +4,7 @@
 -- http://darfpga.blogspot.fr
 ---------------------------------------------------------------------------------
 -- gen_ram.vhd & io_ps2_keyboard
--------------------------------- 
+--------------------------------
 -- Copyright 2005-2008 by Peter Wendrich (pwsoft@syntiac.com)
 -- http://www.syntiac.com/fpga64.html
 ---------------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 -- Copyright (c) 2001-2002 Daniel Wallner (jesus@opencores.org)
 ---------------------------------------------------------------------------------
 -- cpu68 - Version 9th Jan 2004 0.8
--- 6800/01 compatible CPU core 
+-- 6800/01 compatible CPU core
 -- GNU public license - December 2002 : John E. Kent
 ---------------------------------------------------------------------------------
 -- YM2149 (AY-3-8910)
@@ -129,23 +129,23 @@ architecture struct of TropicalAngel is
 
  signal hcnt    : std_logic_vector(8 downto 0) := '0'&x"00"; -- horizontal counter
  signal vcnt    : std_logic_vector(8 downto 0) := '0'&x"00"; -- vertical counter
- 
+
  signal hcnt_flip : std_logic_vector(7 downto 0);
  signal vcnt_flip : std_logic_vector(8 downto 0);
  signal hcnt_scrolled : std_logic_vector(7 downto 0);
  signal hcnt_scrolled_val : std_logic_vector(15 downto 0);
  signal hcnt_scrolled_flip : std_logic_vector(2 downto 0);
- 
- signal pix_ena : std_logic;
- 
- signal csync   : std_logic; 
- signal hsync0  : std_logic; 
- signal hsync1  : std_logic; 
- signal hsync2  : std_logic; 
 
- signal hblank  : std_logic; 
- signal vblank  : std_logic; 
- 
+ signal pix_ena : std_logic;
+
+ signal csync   : std_logic;
+ signal hsync0  : std_logic;
+ signal hsync1  : std_logic;
+ signal hsync2  : std_logic;
+
+ signal hblank  : std_logic;
+ signal vblank  : std_logic;
+
  signal cpu_ena        : std_logic;
 
  signal cpu_addr    : std_logic_vector(15 downto 0);
@@ -158,13 +158,13 @@ architecture struct of TropicalAngel is
  signal cpu_m1_n    : std_logic;
 
 -- signal cpu_rom_do : std_logic_vector( 7 downto 0);
- 
+
  signal wram_we    : std_logic;
  signal wram_do    : std_logic_vector( 7 downto 0);
 
  signal flip     : std_logic;
  signal flip_int : std_logic;
- 
+
  signal chrram_addr: std_logic_vector(10 downto 0);
  signal chrram_we  : std_logic;
  signal chrram_do  : std_logic_vector(7 downto 0);
@@ -183,18 +183,18 @@ architecture struct of TropicalAngel is
  signal scrollram_h_cpu_do : std_logic_vector( 7 downto 0);
  signal scrollram_h_do     : std_logic_vector( 7 downto 0);
  signal scroll_val         : std_logic_vector(15 downto 0);
- 
+
  signal chr_code: std_logic_vector( 9 downto 0);
  signal chr_attr: std_logic_vector( 7 downto 0);
  signal chr_code_line : std_logic_vector(12 downto 0);
  signal chr_flip_h : std_logic;
- 
+
  signal chr_graphx1_do   : std_logic_vector(7 downto 0);
  signal chr_graphx2_do   : std_logic_vector(7 downto 0);
  signal chr_graphx3_do   : std_logic_vector(7 downto 0);
  signal chr_color        : std_logic_vector(3 downto 0);
  signal chr_palette_addr : std_logic_vector(7 downto 0);
- signal chr_palette_do   : std_logic_vector(7 downto 0); 
+ signal chr_palette_do   : std_logic_vector(7 downto 0);
  signal chr_palette1_do   : std_logic_vector(7 downto 0);
  signal chr_palette2_do   : std_logic_vector(7 downto 0);
 
@@ -202,7 +202,7 @@ architecture struct of TropicalAngel is
  signal sprram_we        : std_logic;
  signal sprram_do        : std_logic_vector(7 downto 0);
 
- signal spr_en                : std_logic; 
+ signal spr_en                : std_logic;
  signal spr_pix_ena           : std_logic;
  signal spr_hcnt              : std_logic_vector( 9 downto 0);
  signal spr_posv              : std_logic_vector( 7 downto 0);
@@ -210,7 +210,7 @@ architecture struct of TropicalAngel is
  signal spr_attr, spr_attr_r  : std_logic_vector( 7 downto 0);
  signal spr_code, spr_code_r  : std_logic_vector( 7 downto 0);
  signal spr_posh, spr_posh_r  : std_logic_vector( 7 downto 0);
- 
+
  signal spr_vcnt         : std_logic_vector( 7 downto 0);
  signal spr_on_line      : std_logic;
  signal spr_on_line_r    : std_logic;
@@ -242,7 +242,7 @@ architecture struct of TropicalAngel is
  signal spr_buffer_ram2_we   : std_logic;
  signal spr_buffer_ram2_di   : std_logic_vector(3 downto 0);
  signal spr_buffer_ram2_do   : std_logic_vector(3 downto 0);
- 
+
  signal sound_cmd  : std_logic_vector( 7 downto 0);
  signal audio      : std_logic_vector(11 downto 0);
 
@@ -261,7 +261,7 @@ reset_n   <= not reset;
 
 sp_addr <= '0'& spr_code_line;
 
--- debug 
+-- debug
 process (reset, clock_36, cpu_ena, cpu_mreq_n)
 begin
  if rising_edge(clock_36) and cpu_ena ='1' and cpu_mreq_n ='0' then
@@ -274,7 +274,7 @@ process (clock_36, reset)
 begin
 	if reset='1' then
 		clock_cnt <= "0000";
-	else 
+	else
 		if rising_edge(clock_36) then
 			if clock_cnt = "1011" then
 				clock_cnt <= "0000";
@@ -282,7 +282,7 @@ begin
 				clock_cnt <= clock_cnt + 1;
 			end if;
 		end if;
-	end if;   		
+	end if;
 end process;
 
 pix_ena <= '1' when clock_cnt = "0101" or clock_cnt = "1011" else '0'; -- (6MHz)
@@ -291,23 +291,28 @@ cpu_ena <= '1' when clock_cnt = "1011" else '0'; -- (3MHz)
 -------------------
 -- Video scanner --
 -------------------
---  hcnt [x080..x0FF-x100..x1FF] => 128+256 = 384 pixels,  384/6.144Mhz => 1 line is 62.5us (16.000KHz)
---  vcnt [x0E6..x0FF-x100..x1FF] =>  26+256 = 282 lines, 1 frame is 260 x 62.5us = 17.625ms (56.74Hz)
+--  hcnt [x080..x0FF-x100..x1FF] => 128+256 = 384 pixels,  384/6.144Mhz => 1 line is 62.5us (16.000KHz) -- from MiST, not used in MiSTer
+--  vcnt [x0E6..x0FF-x100..x1FF] =>  26+256 = 282 lines, 1 frame is 260 x 62.5us = 17.625ms (56.74Hz)   -- from MiST, not used in MiSTer
+
+--  hcnt [x076..x0FF-x100..x1FF] => 138+256 = 394 pixels,  394/6.144Mhz => 1 line is 64.06us (15.609KHz) -- updated by @birdybro using measurements from @kold669
+--  vcnt [x0DF..x0FF-x100..x1FF] =>  19+256 = 275 lines, 1 frame is 275 x 64.06us = 17.616ms (56.76Hz)   -- updated by @birdybro using measurements from @kold669
 
 process (reset, clock_36, pix_ena)
 begin
 	if reset='1' then
 		hcnt  <= (others=>'0');
-		vcnt  <= '0'&X"FC";	
-	else 
+		vcnt  <= '0'&X"FC";
+	else
 		if rising_edge(clock_36) and pix_ena = '1'then
 			hcnt <= hcnt + 1;
 			if hcnt = '1'&x"FF" then
-				hcnt <= '0'&x"80";
+				-- hcnt <= '0'&x"80"; -- MiST
+				hcnt <= '0'&x"76"; -- from measurements by @kold669
 				vcnt <= vcnt + 1;
 				if vcnt = '1'&x"FF" then
 					if palmode = '0' then
-						vcnt <= '0'&x"E6";  -- from M52 schematics
+						-- vcnt <= '0'&x"E6";  -- from M52 schematics (MiST)
+						vcnt <= '0'&x"EC"; -- from measurements by @kold669
 					else
 						vcnt <= '0'&x"C8";
 					end if;
@@ -350,7 +355,7 @@ begin
 	if reset = '1' then
 		sound_cmd <= x"00";
 	elsif rising_edge(clock_36) then
-	
+
 		if cpu_m1_n = '0' and cpu_ioreq_n = '0' then
 			cpu_irq_n <= '1';
 		else	-- lauch irq and end of frame
@@ -364,8 +369,8 @@ begin
 		if cpu_wr_n = '0' and cpu_addr(15 downto 0) = X"D000" then sound_cmd <= cpu_do;    end if;
 		if cpu_wr_n = '0' and cpu_addr(15 downto 0) = X"D001" then flip_int  <= cpu_do(0); end if;
 
-	end if;	
-end process; 
+	end if;
+end process;
 
 ------------------------------------------
 -- write enable to working ram from CPU --
@@ -402,7 +407,7 @@ sprram_addr <= spr_hcnt(9 downto 4) & spr_hcnt(1 downto 0);
 -- Enable sprites in lines 64-240
 spr_en <= '1' when ( vcnt > '1'&x"40" and vcnt < '1'&x"EF" and flip = '1') or ((vcnt > '1'&x"10" or vcnt < '1'&x"C0") and flip = '0') else '0';
 
--- latch current sprite data with respect to pixel and hcnt in relation with sprite data ram addressing  
+-- latch current sprite data with respect to pixel and hcnt in relation with sprite data ram addressing
 process (clock_36)
 variable code:std_logic_vector(7 downto 0);
 begin
@@ -454,7 +459,7 @@ spr_palette_addr(7 downto 3) <= spr_attr_r(4 downto 0); -- color set#
 ----------------------------------------------------
 
 -- input buffer work at 36Mhz (read previous data before write)
--- sprite data is written to input buffer when not already written (previous data differ from 0000) 
+-- sprite data is written to input buffer when not already written (previous data differ from 0000)
 
 -- buffer data is written back to 0000 (cleared) after read from output buffer
 -- output buffer work at normal pixel speed (12Mhz since read previous data before clear)
@@ -485,7 +490,7 @@ begin
 			if hcnt < '1'&x"09" then
 				spr_output_line_addr <= X"00";
 			else
-				if flip = '0' then 
+				if flip = '0' then
 					spr_output_line_addr <= spr_output_line_addr+1;
 				else
 					spr_output_line_addr <= spr_output_line_addr-1;
@@ -495,22 +500,22 @@ begin
 		end if;
 
 		-- demux output buffer (flip-flop)
-		if pix_ena = '0' then 	
-			if vcnt(0) = '1'then 
+		if pix_ena = '0' then
+			if vcnt(0) = '1'then
 				spr_output_line_do <= spr_buffer_ram1_do;
 			else
 				spr_output_line_do <= spr_buffer_ram2_do;
-			end if;	
+			end if;
 		end if;
 
 	end if;
-end process;	
+end process;
 
 -- read previous data from input buffer w.r.t. flip-flop
 spr_input_line_do  <= spr_buffer_ram1_do when vcnt(0) = '0' else spr_buffer_ram2_do;
 
 -- feed input buffer
-spr_input_line_di <= spr_pixels(3 downto 0); 
+spr_input_line_di <= spr_pixels(3 downto 0);
 -- keep write data if input buffer is clear
 spr_input_line_we <= '1' when spr_on_line_r = '1' and spr_pix_ena = '1' and spr_input_line_do = "0000" else '0';
 
@@ -534,7 +539,7 @@ spr_rgb_lut_addr <= '0' & not spr_output_line_do;
 --------------------
 --- char machine ---
 --------------------
--- compute scrolling zone and apply to horizontal scanner 
+-- compute scrolling zone and apply to horizontal scanner
 scrollram_addr <= vcnt_flip(7 downto 0);
 apply_xscroll <= '1' when vcnt_flip(7 downto 6) = "01" else '0'; -- apply common scroll_x (scroll mem[0x40]) to lines 64-127
 hcnt_scrolled_val <= x"00" & hcnt_flip + scroll_x when apply_xscroll = '1' else
@@ -558,7 +563,7 @@ with hcnt_scrolled_flip(2 downto 0) select chrram_addr <=
 -- write enable to char tile ram from CPU
 chrram_we <= '1' when cpu_wr_n = '0' and cpu_addr(15 downto 11) = X"8"&'0' and hcnt_scrolled_flip(1 downto 0) /= "00" else '0';
 
--- read char tile ram and manage char graphics		
+-- read char tile ram and manage char graphics
 process (clock_36)
 begin
 	if rising_edge(clock_36) then
@@ -579,7 +584,7 @@ begin
 			chr_code(9 downto 8) <= chrram_do(7 downto 6);
 		end if;
 
-		-- compute graphics rom address and delay char flip and color 
+		-- compute graphics rom address and delay char flip and color
 		if hcnt_scrolled_flip(2 downto 0) = "111" and pix_ena = '1' then
 			chr_code_line( 2 downto  0) <= vcnt_flip(2 downto 0) xor (chr_attr(4) & chr_attr(4) & chr_attr(4));
 			chr_code_line(12 downto  3) <= chr_code;
@@ -587,7 +592,7 @@ begin
 			chr_color <= chr_attr(3 downto 0);
 		end if;
 
-		-- get and serialise char graphics data and w.r.t char flip 
+		-- get and serialise char graphics data and w.r.t char flip
 		-- and compute palette address from graphics bits and color set#
 		if pix_ena = '1' then
 			chr_palette_addr(7) <= '0';
@@ -662,7 +667,7 @@ if rising_edge(clock_36) and pix_ena = '1' then
 		hsync_cnt := (others=>'0');
 	else
 		hsync_cnt := hsync_cnt + 1;
-	end if;	 
+	end if;
 
 	if    hsync_cnt = 0   then hsync0 <= '0';
 	elsif hsync_cnt = 24  then hsync0 <= '1';
@@ -679,14 +684,14 @@ if rising_edge(clock_36) and pix_ena = '1' then
 	elsif hsync_cnt = 192   then hsync2 <= '0';
 	elsif hsync_cnt = 384-8 then hsync2 <= '1';
 	end if;
-  
-	if hcnt = hcnt_base then 
+
+	if hcnt = hcnt_base then
 		if vcnt = 238 then
 			vsync_cnt := X"0";
 		else
 			if vsync_cnt < X"F" then vsync_cnt := vsync_cnt + 1; end if;
 		end if;
-	end if;	 
+	end if;
 
 	if    vsync_cnt = 0 then csync <= hsync1;
 	elsif vsync_cnt = 1 then csync <= hsync1;
@@ -701,7 +706,7 @@ if rising_edge(clock_36) and pix_ena = '1' then
 	end if;
 
 	-- hcnt : [128-511] 384 pixels
-	if    hcnt = 128 then hblank <= '1'; 
+	if    hcnt = 128 then hblank <= '1';
 	elsif hcnt = 272 then hblank <= '0';
 	end if;
 
@@ -714,7 +719,7 @@ if rising_edge(clock_36) and pix_ena = '1' then
 	video_blankn <= not (hblank or vblank);
 --
     video_hs <= hsync0;
---  
+--
     if    vsync_cnt = 0 then video_vs <= '0';
     elsif vsync_cnt = 2 then video_vs <= '1';
     end if;
