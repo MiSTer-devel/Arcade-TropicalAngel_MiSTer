@@ -202,6 +202,9 @@ assign VIDEO_ARY = (!ar) ? 12'd1 : 12'd0;
 localparam CONF_STR = {
 	"A.TropicalAngel;;",
 	"-;",
+	"O[127:124],vblanks,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
+	"O[123:120],hblanks,0,+1,+2,+3,+4,+5,+6,+7,-8,-7,-6,-5,-4,-3,-2,-1;",
+	"-;",
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
 	"-;",
@@ -427,6 +430,9 @@ TropicalAngel TropicalAngel
 	.reset(reset),
 
 	.palmode(),
+
+	.vblank_adj(status[127:124]),
+	.hblank_adj(status[123:120]),
 
 	.video_r(r),
 	.video_g(g),
