@@ -85,9 +85,6 @@ port(
 
  palmode      : in std_logic;
 
- vblank_adj     : in std_logic_vector(3 downto 0);
- hblank_adj     : in std_logic_vector(3 downto 0);
-
 -- tv15Khz_mode : in std_logic;
  video_r        : out std_logic_vector(1 downto 0);
  video_g        : out std_logic_vector(2 downto 0);
@@ -666,7 +663,7 @@ begin
 
 if rising_edge(clock_36) and pix_ena = '1' then
 
-	if signed(hcnt) = signed(hblank_adj) + hcnt_base then
+	if hcnt = hcnt_base then
 		hsync_cnt := (others=>'0');
 	else
 		hsync_cnt := hsync_cnt + 1;
@@ -688,8 +685,8 @@ if rising_edge(clock_36) and pix_ena = '1' then
 	elsif hsync_cnt = 384-8 then hsync2 <= '1';
 	end if;
 
-	if signed(hcnt) = hcnt_base then
-		if signed(vcnt) = signed(vblank_adj) + 238 then
+	if hcnt = hcnt_base then
+		if vcnt = 238 then
 			vsync_cnt := X"0";
 		else
 			if vsync_cnt < X"F" then vsync_cnt := vsync_cnt + 1; end if;
