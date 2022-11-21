@@ -85,6 +85,11 @@ port(
 
  palmode      : in std_logic;
 
+ vblank_start   : in std_logic_vector(3 downto 0);
+ vblank_end     : in std_logic_vector(3 downto 0);
+ hblank_start   : in std_logic_vector(3 downto 0);
+ hblank_end     : in std_logic_vector(3 downto 0);
+
 -- tv15Khz_mode : in std_logic;
  video_r        : out std_logic_vector(1 downto 0);
  video_g        : out std_logic_vector(2 downto 0);
@@ -711,8 +716,8 @@ if rising_edge(clock_36) and pix_ena = '1' then
 	-- end if;
 
 	-- hcnt : 394 pixels
-	if    hcnt = 123 then hblank <= '1';
-	elsif hcnt = 277 then hblank <= '0';
+	if    signed(hcnt) = 123 + signed(hblank_start) then hblank <= '1';
+	elsif signed(hcnt) = 277 + signed(hblank_end) then hblank <= '0';
 	end if;
 
 	-- -- vcnt : [230-511] 282 lines -- MiST values
@@ -721,8 +726,8 @@ if rising_edge(clock_36) and pix_ena = '1' then
 	-- end if;
 
 	-- vcnt : 275 lines
-	if    vcnt = 492 then vblank <= '1';
-	elsif vcnt = 260 then vblank <= '0';
+	if    signed(vcnt) = 492 + signed(vblank_start) then vblank <= '1';
+	elsif signed(vcnt) = 260 + signed(vblank_end) then vblank <= '0';
 	end if;
 
 	-- external sync and blank outputs
