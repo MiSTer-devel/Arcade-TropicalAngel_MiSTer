@@ -291,11 +291,11 @@ cpu_ena <= '1' when clock_cnt = "1011" else '0'; -- (3MHz)
 -------------------
 -- Video scanner --
 -------------------
---  hcnt [x080..x0FF-x100..x1FF] => 128+256 = 384 pixels,  384/6.144Mhz => 1 line is 62.5us (16.000KHz) -- from MiST, not used in MiSTer
---  vcnt [x0E6..x0FF-x100..x1FF] =>  26+256 = 282 lines, 1 frame is 260 x 62.5us = 17.625ms (56.74Hz)   -- from MiST, not used in MiSTer
+-- hcnt [x080..x0FF-x100..x1FF] => 128+256 = 384 pixels,  384/6.1439Mhz => 1 line is 62.5us (16.000KHz) -- from MiST, not used in MiSTer
+-- vcnt [x0E6..x0FF-x100..x1FF] => 26+256 = 282 lines, 1 frame is 260 x 62.5us = 17.625ms (56.74Hz)     -- from MiST, not used in MiSTer
 
---  hcnt [x076..x0FF-x100..x1FF] => 138+256 = 394 pixels,  394/6.144Mhz => 1 line is 64.06us (15.609KHz) -- updated by @birdybro using measurements from @kold669
---  vcnt [x0ED..x0FF-x100..x1FF] =>  19+256 = 275 lines, 1 frame is 275 x 64.06us = 17.616ms (56.76Hz)   -- updated by @birdybro using measurements from @kold669
+-- hcnt [x076..x0FF-x100..x1FF] => 138+256 = 394 pixels, 394/6.1439Mhz => 1 line is 64.1286us (15.5936KHz actual and 15.609KHz measured from pcb) -- updated by @birdybro using measurements from @kold669
+-- vcnt [x0ED..x0FF-x100..x1FF] =>  19+256 = 275 lines, 1 frame is 275 x 64.1286us = 17.635ms (56.71Hz actual and 56.75Hz measured from pcb)      -- updated by @birdybro using measurements from @kold669
 
 process (reset, clock_36, pix_ena)
 begin
@@ -314,7 +314,7 @@ begin
 						-- vcnt <= '0'&x"E6";  -- from M52 schematics (MiST)
 						vcnt <= '0'&x"ED"; -- from measurements by @kold669
 					else
-						vcnt <= '0'&x"C8";
+						vcnt <= '0'&x"C8"; -- unused in MiSTer
 					end if;
 				end if;
 			end if;
@@ -705,14 +705,24 @@ if rising_edge(clock_36) and pix_ena = '1' then
 	else                     csync <= hsync0;
 	end if;
 
-	-- hcnt : [128-511] 384 pixels
-	if    hcnt = 128 then hblank <= '1';
-	elsif hcnt = 272 then hblank <= '0';
+	-- -- hcnt : [128-511] 384 pixels -- MiST values
+	-- if    hcnt = 128 then hblank <= '1';
+	-- elsif hcnt = 272 then hblank <= '0';
+	-- end if;
+
+	-- hcnt : 394 pixels
+	if    hcnt = 123 then hblank <= '1';
+	elsif hcnt = 277 then hblank <= '0';
 	end if;
 
-	-- vcnt : [230-511] 282 lines
-	if    vcnt = 495 then vblank <= '1';
-	elsif vcnt = 256 then vblank <= '0';
+	-- -- vcnt : [230-511] 282 lines -- MiST values
+	-- if    vcnt = 495 then vblank <= '1';
+	-- elsif vcnt = 256 then vblank <= '0';
+	-- end if;
+
+	-- vcnt : 275 lines
+	if    vcnt = 492 then vblank <= '1';
+	elsif vcnt = 260 then vblank <= '0';
 	end if;
 
 	-- external sync and blank outputs
