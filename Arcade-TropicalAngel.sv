@@ -177,12 +177,12 @@ assign ADC_BUS  = 'Z;
 assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
+assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;
 
 assign VGA_F1 = 0;
 assign VGA_SCALER  = 0;
 assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
-assign FB_FORCE_BLANK = 0;
 
 assign AUDIO_MIX = 0;
 
@@ -264,7 +264,7 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys, clk_mem, clk_vid;
+wire clk_sys, clk_mem, clk_aud;
 wire pll_locked;
 pll pll
 (
@@ -272,7 +272,7 @@ pll pll
 	.rst(0),
 	.outclk_0(clk_mem), // 73.727996 MHz
 	.outclk_1(clk_sys), // 36.863998 MHz
-	.outclk_2(clk_vid), // 49.151997 MHz
+	.outclk_2(clk_aud), //  3.579545 MHz
 	.locked(pll_locked)
 );
 
@@ -382,9 +382,10 @@ wire [2:0] green = blankn ? g : 0;
 wire [2:0] blue  = blankn ? b : 0;
 
 reg ce_pix;
-always @(posedge clk_vid) begin // Divide video clock by 8
+always @(posedge clk_sys) begin
 	reg [2:0] div;
 	div <= div + 1'd1;
+	if (div == 3'd5) div <= 3'd0; // Divide video clock by 6
 	ce_pix <= !div;
 end
 
@@ -392,7 +393,7 @@ arcade_video #(240,9,1) arcade_video
 (
 	.*,
 
-	.clk_video(clk_vid),
+	.clk_video(clk_sys),
 
 	.RGB_in({red,green,blue}),
 	.HBlank(hblank),
@@ -408,22 +409,17 @@ assign AUDIO_L = {audio, 5'd0};
 assign AUDIO_R = {audio, 5'd0};
 assign AUDIO_S = 0;
 
-reg clk_aud;
-always @(posedge clk_sys) begin
-	reg [15:0] sum;
-
-	clk_aud = 0;
-	sum = sum + 16'd895;
-	if(sum >= 36000) begin
-		sum = sum - 16'd36000;
-		clk_aud = 1;
-	end
+reg ce_aud;
+always @(posedge clk_aud) begin // Divide video clock by 4
+	reg [1:0] div;
+	div <= div + 1'd1;
+	ce_aud <= !div;
 end
 
 TropicalAngel TropicalAngel
 (
 	.clock_36(clk_sys),
-	.clock_0p895(clk_aud),
+	.clock_0p895(ce_aud),
 	.reset(reset),
 
 	.palmode(),
