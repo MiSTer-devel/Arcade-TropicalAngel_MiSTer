@@ -295,7 +295,7 @@ cpu_ena <= '1' when clock_cnt = "1011" else '0'; -- (3MHz)
 --  vcnt [x0E6..x0FF-x100..x1FF] =>  26+256 = 282 lines, 1 frame is 260 x 62.5us = 17.625ms (56.74Hz)   -- from MiST, not used in MiSTer
 
 --  hcnt [x076..x0FF-x100..x1FF] => 138+256 = 394 pixels,  394/6.144Mhz => 1 line is 64.06us (15.609KHz) -- updated by @birdybro using measurements from @kold669
---  vcnt [x0DF..x0FF-x100..x1FF] =>  19+256 = 275 lines, 1 frame is 275 x 64.06us = 17.616ms (56.76Hz)   -- updated by @birdybro using measurements from @kold669
+--  vcnt [x0ED..x0FF-x100..x1FF] =>  19+256 = 275 lines, 1 frame is 275 x 64.06us = 17.616ms (56.76Hz)   -- updated by @birdybro using measurements from @kold669
 
 process (reset, clock_36, pix_ena)
 begin
@@ -312,7 +312,7 @@ begin
 				if vcnt = '1'&x"FF" then
 					if palmode = '0' then
 						-- vcnt <= '0'&x"E6";  -- from M52 schematics (MiST)
-						vcnt <= '0'&x"EC"; -- from measurements by @kold669
+						vcnt <= '0'&x"ED"; -- from measurements by @kold669
 					else
 						vcnt <= '0'&x"C8";
 					end if;
