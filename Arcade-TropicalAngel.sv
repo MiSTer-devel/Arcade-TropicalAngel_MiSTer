@@ -207,9 +207,13 @@ localparam CONF_STR = {
 	"-;",
 	"DIP;",
 	"-;",
+	"P1,Pause options;",
+	"P1O[6],Pause when OSD is open,On,Off;",
+	"P1O[7],Dim video after 10s,On,Off;",
+	"-;",
 	"R[0],Reset;",
-	"J1,Gas,Reverse,Start,Coin;",
-	"jn,A,B,Start,Select;",
+	"J1,Gas,Reverse,Start,Coin,Pause;",
+	"jn,A,B,Start,Select,L;",
 	"V,v",`BUILD_DATE
 };
 
@@ -369,17 +373,17 @@ wire m_coin1  = joystick_0[7];
 wire m_start2 = joystick_1[6];
 wire m_coin2  = joystick_1[7];
 
-// wire m_service = joystick_0[8] | joystick_1[8];
+wire m_pause  = joystick_0[8] | joystick_1[8];
 
 wire hblank, vblank;
 wire blankn;
 wire hs, vs;
-wire [1:0] r;
-wire [2:0] g, b;
-wire [1:0] r_swap = {r[0], r[1]};
-wire [2:0] red   = blankn ? {r_swap, r_swap[1] } : 0;
-wire [2:0] green = blankn ? g : 0;
-wire [2:0] blue  = blankn ? b : 0;
+wire [1:0] red;
+wire [2:0] green, blue;
+wire [1:0] r_swap = {red[0], red[1]};
+wire [2:0] r = blankn ? {r_swap, r_swap[1] } : 0;
+wire [2:0] g = blankn ? green : 0;
+wire [2:0] b = blankn ? blue : 0;
 
 reg ce_pix;
 always @(posedge clk_vid) begin // Divide video clock by 8
@@ -388,13 +392,25 @@ always @(posedge clk_vid) begin // Divide video clock by 8
 	ce_pix <= !div;
 end
 
+wire       pause_cpu;
+wire [8:0] rgb_out;
+pause #(3,3,3,37)
+(
+	.*,
+	.clk_sys(clk_sys),
+	.reset(reset),
+	.user_button(m_pause),
+	// .pause_request(hs_pause),
+	.options(~status[7:6])
+);
+
 arcade_video #(240,9,1) arcade_video
 (
 	.*,
 
 	.clk_video(clk_vid),
 
-	.RGB_in({red,green,blue}),
+	.RGB_in(rgb_out),
 	.HBlank(hblank),
 	.VBlank(vblank),
 	.HSync(hs),
@@ -425,6 +441,7 @@ TropicalAngel TropicalAngel
 	.clock_36(clk_sys),
 	.clock_0p895(clk_aud),
 	.reset(reset),
+	.pause_cpu(pause_cpu),
 
 	.palmode(),
 

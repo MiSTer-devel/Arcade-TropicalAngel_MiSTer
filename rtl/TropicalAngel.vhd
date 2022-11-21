@@ -82,6 +82,7 @@ port(
  clock_36     : in std_logic;
  clock_0p895  : in std_logic;
  reset        : in std_logic;
+ pause_cpu    : in std_logic;
 
  palmode      : in std_logic;
 
@@ -736,7 +737,7 @@ port map(
   RESET_n => reset_n,
   CLK_n   => clock_36,
   CLKEN   => cpu_ena,
-  WAIT_n  => '1',
+  WAIT_n  => not pause_cpu,
   INT_n   => cpu_irq_n,
   NMI_n   => '1', --cpu_nmi_n,
   BUSRQ_n => '1',

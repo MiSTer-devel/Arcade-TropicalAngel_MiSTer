@@ -4,8 +4,9 @@ set_global_assignment -name SYSTEMVERILOG_FILE Arcade-TropicalAngel.sv
 set_global_assignment -name VHDL_FILE rtl/dpram.vhd
 set_global_assignment -name VHDL_FILE rtl/gen_ram.vhd
 set_global_assignment -name VHDL_FILE rtl/moon_patrol_sound_board.vhd
-set_global_assignment -name VHDL_FILE rtl/TropicalAngel.vhd
+set_global_assignment -name VERILOG_FILE rtl/pause.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/sdram.sv
+set_global_assignment -name VHDL_FILE rtl/TropicalAngel.vhd
 set_global_assignment -name VHDL_FILE rtl/6800/cpu68.vhd
 set_global_assignment -name QIP_FILE rtl/jt5205/jt5205.qip
 set_global_assignment -name QIP_FILE rtl/T80/T80.qip
