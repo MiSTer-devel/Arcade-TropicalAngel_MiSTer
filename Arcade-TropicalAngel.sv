@@ -204,6 +204,7 @@ localparam CONF_STR = {
 	"-;",
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
+	"O[6],Ocean Color,Blue,Purple;",
 	"-;",
 	"DIP;",
 	"-;",
@@ -217,6 +218,8 @@ wire [127:0] status;
 wire   [1:0] buttons;
 wire         forced_scandoubler;
 wire         direct_video;
+
+wire         ocean_color = status[6];
 
 wire  [14:0] rom_addr;
 wire  [15:0] rom_do;
@@ -377,7 +380,7 @@ wire hs, vs;
 wire [1:0] r;
 wire [2:0] g, b;
 wire [1:0] r_swap = {r[0], r[1]};
-wire [2:0] red   = blankn ? {r_swap, r_swap[1] } : 0;
+wire [2:0] red   = blankn ? ( ocean_color ? {r, r[1]} : {r_swap, r_swap[1]} ) : 0;
 wire [2:0] green = blankn ? g : 0;
 wire [2:0] blue  = blankn ? b : 0;
 
