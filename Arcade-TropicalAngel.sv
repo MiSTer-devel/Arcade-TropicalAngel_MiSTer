@@ -415,11 +415,11 @@ reg clk_aud;
 always @(posedge clk_sys) begin
 	reg [15:0] sum;
 
-	clk_aud = 0;
-	sum = sum + 16'd895;
+	clk_aud <= 0;
+	sum <= sum + 16'd895;
 	if(sum >= 36000) begin
-		sum = sum - 16'd36000;
-		clk_aud = 1;
+		sum <= sum - 16'd36000;
+		clk_aud <= 1;
 	end
 end
 
