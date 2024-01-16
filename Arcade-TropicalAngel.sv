@@ -177,12 +177,12 @@ assign ADC_BUS  = 'Z;
 assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
+assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
 
 assign VGA_F1 = 0;
 assign VGA_SCALER  = 0;
 assign VGA_DISABLE = 0;
 assign HDMI_FREEZE = 0;
-assign FB_FORCE_BLANK = 0;
 
 assign AUDIO_MIX = 0;
 
@@ -204,7 +204,7 @@ localparam CONF_STR = {
 	"-;",
 	"H0O[2:1],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"O[5:3],Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-	"O[6],Ocean Color,Blue,Purple;",
+	"O[9],Color Palette,Original,Alternate;",
 	"-;",
 	"DIP;",
 	"-;",
@@ -219,14 +219,14 @@ wire   [1:0] buttons;
 wire         forced_scandoubler;
 wire         direct_video;
 
-wire         ocean_color = status[6];
+wire         color_palette = status[9];
 
 wire  [14:0] rom_addr;
 wire  [15:0] rom_do;
 wire  [12:0] snd_rom_addr;
 wire  [16:1] snd_addr;
 wire  [15:0] snd_do;
-wire         snd_vma, snd_vma_r, snd_vma_r2;
+reg         snd_vma, snd_vma_r, snd_vma_r2;
 wire  [14:0] sp_addr;
 wire  [31:0] sp_do;
 
@@ -379,10 +379,27 @@ wire blankn;
 wire hs, vs;
 wire [1:0] r;
 wire [2:0] g, b;
-wire [1:0] r_swap = {r[0], r[1]};
-wire [2:0] red   = blankn ? ( ocean_color ? {r, r[1]} : {r_swap, r_swap[1]} ) : 0;
-wire [2:0] green = blankn ? g : 0;
-wire [2:0] blue  = blankn ? b : 0;
+wire [2:0] red, green, blue;
+
+always_comb begin
+	case (color_palette)
+		1'b0    : red = blankn ? {r[1], r[0], r[0]} : '0;
+		1'b1    : red = blankn ? {r[0], r[1], r[1]} : '0;
+		default : red = blankn ? {r[1], r[0], r[0]} : '0;
+	endcase
+	green = blankn ? g : '0;
+	blue  = blankn ? b : '0;
+end
+
+wire [23:0] RGB_scaled;
+
+// Use accurate scaling of color from RGB333 to RGB888 with generated LUT
+rgb333_to_rgb888 rgb333_to_rgb888
+(
+    .address({red, green, blue}),
+    .clock(clk_vid),
+    .q(RGB_scaled)
+);
 
 reg ce_pix;
 always @(posedge clk_vid) begin // Divide video clock by 8
@@ -391,13 +408,13 @@ always @(posedge clk_vid) begin // Divide video clock by 8
 	ce_pix <= !div;
 end
 
-arcade_video #(240,9,1) arcade_video
+arcade_video #(240,24,1) arcade_video
 (
 	.*,
 
 	.clk_video(clk_vid),
 
-	.RGB_in({red,green,blue}),
+	.RGB_in(RGB_scaled),
 	.HBlank(hblank),
 	.VBlank(vblank),
 	.HSync(hs),
@@ -411,15 +428,15 @@ assign AUDIO_L = {audio, 5'd0};
 assign AUDIO_R = {audio, 5'd0};
 assign AUDIO_S = 0;
 
-reg clk_aud;
+// keep this with blocking assignments or else music doesn't work
 always @(posedge clk_sys) begin
 	reg [15:0] sum;
 
-	clk_aud <= 0;
-	sum <= sum + 16'd895;
+	clk_aud = 0;
+	sum = sum + 16'd895;
 	if(sum >= 36000) begin
-		sum <= sum - 16'd36000;
-		clk_aud <= 1;
+		sum = sum - 16'd36000;
+		clk_aud = 1;
 	end
 end
 
