@@ -26,4 +26,4 @@ rgb333_to_rgb888 = generate_rgb333_to_rgb888_lookup_table()
 
 # Optional: print the lookup table
 for key, value in rgb333_to_rgb888.items():
-    print(f"{key}: {value}")
+    print(f"{key} : {value};")
