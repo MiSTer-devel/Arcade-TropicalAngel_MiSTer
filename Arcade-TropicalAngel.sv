@@ -428,17 +428,19 @@ assign AUDIO_L = {audio, 5'd0};
 assign AUDIO_R = {audio, 5'd0};
 assign AUDIO_S = 0;
 
-// keep this with blocking assignments or else music doesn't work
-always @(posedge clk_sys) begin
-	reg [15:0] sum;
+// oscillator for audio on pcb is 3.579545mhz divided by 4 according to measurements by Corrado (kold666)
+// use clk_mem for in_clk because the snd rom vma is using clk_mem in the sensitivity list for it's CDC delay reg
+wire clk_aud;
+CEGen CEGen
+(
+	.clk(clk_mem),
+	.RST_N(~reset),
 
-	clk_aud = 0;
-	sum = sum + 16'd895;
-	if(sum >= 36000) begin
-		sum = sum - 16'd36000;
-		clk_aud = 1;
-	end
-end
+	.IN_CLK(73727996),
+	.OUT_CLK (894886),
+
+	.CE(clk_aud)
+);
 
 TropicalAngel TropicalAngel
 (
