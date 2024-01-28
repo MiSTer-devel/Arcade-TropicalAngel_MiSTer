@@ -10,6 +10,5 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/sdram.sv
 set_global_assignment -name VHDL_FILE rtl/6800/cpu68.vhd
 set_global_assignment -name QIP_FILE rtl/jt5205/jt5205.qip
 set_global_assignment -name QIP_FILE rtl/T80/T80.qip
-set_global_assignment -name QIP_FILE rtl/rgb333_to_rgb888.qip
 set_global_assignment -name VHDL_FILE rtl/ym2149/vol_table_array.vhd
 set_global_assignment -name VHDL_FILE rtl/ym2149/YM2149.vhd

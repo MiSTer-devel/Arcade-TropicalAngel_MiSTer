@@ -378,28 +378,10 @@ wire hblank, vblank;
 wire blankn;
 wire hs, vs;
 wire [1:0] r;
-wire [2:0] g, b;
-wire [2:0] red, green, blue;
+wire [2:0] green, blue;
+wire [2:0] red = color_palette ? {r[0], r[1], r[1]} : {r[1], r[0], r[0]};
 
-always_comb begin
-	case (color_palette)
-		1'b0    : red = blankn ? {r[1], r[0], r[0]} : '0;
-		1'b1    : red = blankn ? {r[0], r[1], r[1]} : '0;
-		default : red = blankn ? {r[1], r[0], r[0]} : '0;
-	endcase
-	green = blankn ? g : '0;
-	blue  = blankn ? b : '0;
-end
-
-wire [23:0] RGB_scaled;
-
-// Use accurate scaling of color from RGB333 to RGB888 with generated LUT
-rgb333_to_rgb888 rgb333_to_rgb888
-(
-    .address({red, green, blue}),
-    .clock(clk_vid),
-    .q(RGB_scaled)
-);
+wire [8:0] RGB_in = blankn ? {red, green, blue} : '0; 
 
 reg ce_pix;
 always @(posedge clk_vid) begin // Divide video clock by 8
@@ -408,13 +390,13 @@ always @(posedge clk_vid) begin // Divide video clock by 8
 	ce_pix <= !div;
 end
 
-arcade_video #(240,24,1) arcade_video
+arcade_video #(240,9,1) arcade_video
 (
 	.*,
 
 	.clk_video(clk_vid),
 
-	.RGB_in(RGB_scaled),
+	.RGB_in(RGB_in),
 	.HBlank(hblank),
 	.VBlank(vblank),
 	.HSync(hs),
@@ -451,8 +433,8 @@ TropicalAngel TropicalAngel
 	.palmode(),
 
 	.video_r(r),
-	.video_g(g),
-	.video_b(b),
+	.video_g(green),
+	.video_b(blue),
 	.video_hs(hs),
 	.video_vs(vs),
 	.video_hblank(hblank),
