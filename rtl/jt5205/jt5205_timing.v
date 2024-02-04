@@ -26,7 +26,7 @@ module jt5205_timing(
     output reg        vclk_o
 );
 
-parameter VCLK_CEN=1;
+parameter VCLK_CEN=0;
 
 reg [6:0] cnt=0;
 reg       pre=0, preb=0;

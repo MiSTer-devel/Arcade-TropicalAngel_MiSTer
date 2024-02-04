@@ -40,7 +40,7 @@ module jt5205(
 // Enabling the interpolator changes the sound of Chun Li's beat in
 // SF2 too much. So I decided to disable it
 parameter INTERPOL=0, // 1 for simple linear interpolation. 0 for raw output
-          VCLK_CEN=1; // 1 for using vclk_o as an output clock enable
+          VCLK_CEN=0; // 1 for using vclk_o as an output clock enable
                       // 0 for keeping vclk_o duty cycle as 50%
 
 wire               cen_lo, cen_mid;
